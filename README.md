@@ -3,6 +3,8 @@
 Insurers send the claimant a link; every photo is captured live in the phone's browser and checked against the policy and the claimant's story before it can be used, then sealed and returned as a report the adjuster decides on.
 The adjuster keeps working in the claims system; this product delivers the verified evidence there.
 
+> **Built with Meta AI.** At runtime, Muse Spark reads every photo and statement and SAM 3.1 outlines the damage (see [Meta models](#meta-models)). The code was written by a solo developer working with AI coding agents: **Muse Code** (Meta) and **Claude Code** (Anthropic). Live demo: https://phamdinhluu0712--evidence-capture.us-east.modal.run
+
 ## The problem
 
 - In a 2026 Verisk survey (a vendor survey), 36% of US consumers said they would consider editing a claim photo or document (55% of Gen Z); 99% of claims staff have seen altered or AI-made documents, yet only 32% of carriers feel confident detecting them.
