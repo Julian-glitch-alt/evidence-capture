@@ -50,27 +50,47 @@ Every model call goes through one client with a replay cache, timeouts, retries,
 
 ## How well the AI reads photos
 
-Hits / n with 95% Wilson intervals, measured on 3 Nov 2026 with Muse Spark Open on Fireworks:
+The model never decides a claim. When it cannot read a photo, it asks the claimant for another shot; whatever it flags goes to the adjuster. So a miss comes in two kinds: a **wrong answer**, which could mislead the adjuster, and a **refusal**, which costs the claimant one more photo. The tables keep them apart.
+
+Measured on 3 Nov 2026 with Muse Spark Open on Fireworks, the model the live server runs. Hits / n with 95% Wilson intervals; every set is small, so read the range.
+
+### Wrong answers
+
+| Wrong answer (lower is better) | Result | 95% range |
+| --- | --- | --- |
+| VIN read wrong | 0 / 6 = 0% | 0% to 39% |
+| Odometer read wrong | 0 / 7 = 0% | 0% to 35% |
+| Damaged area a person marked, missed | 0 / 21 = 0% | 0% to 15% |
+| Undamaged car called damaged | 0 / 9 = 0% | 0% to 30% |
+| Planted flag the checks missed | 0 / 6 = 0% | 0% to 39% |
+| License plate read wrong | 3 / 20 = 15% | 5% to 36% |
+
+The three wrong plates were two antique plates read with a repeated digit and one messaging-app copy read with one wrong letter. A wrong plate does not pass silently: it fails the match against the policy and reaches the adjuster as a flag.
+
+### Reads and refusals
+
+| Field | Read right | Refused, asked for another shot | Read wrong |
+| --- | --- | --- | --- |
+| License plate | 15 / 20 | 2 (a distant photo, an antique plate with no state name) | 3 |
+| VIN | 3 / 6 | 3 (our synthetic windshield-style images, no car around the plate) | 0 |
+| Odometer | 7 / 7 | 0 | 0 |
+
+Every plate read from a modern close-up was right, and every VIN the model read was right.
+
+### Photo quality, damage and flags
 
 | What was checked | Result | 95% range |
 | --- | --- | --- |
-| Reads the license plate exactly | 15 / 20 = 75% | 53% to 89% |
-| Reads the VIN exactly | 3 / 6 = 50% | 19% to 81% |
-| Reads the odometer exactly | 7 / 7 = 100% | 65% to 100% |
 | Asks for another shot of a blurred, dark, wrong, or unreadable photo | 25 / 25 = 100% | 87% to 100% |
-| Asks for another shot of a good photo (lower is better) | 5 / 47 = 11% | 5% to 23% |
-| Finds each damaged area a person marked | 21 / 21 = 100% | 85% to 100% |
-| Names the marked area or the one next to it | 32 / 37 = 86% | 72% to 94% |
 | Names the right kind of damage | 21 / 21 = 100% | 85% to 100% |
-| Rates severity the way a person did | 14 / 21 = 67% | 45% to 83% |
-| Calls an undamaged car damaged (lower is better) | 0 / 9 = 0% | 0% to 30% |
-| Raises the planted flag on a claim with a planted problem | 6 / 6 = 100% | 61% to 100% |
-| Share of flags on those claims that were planted | 6 / 13 = 46% | 23% to 71% |
+| Names the marked area or the one next to it | 32 / 37 = 86% | 72% to 94% |
+| Rates severity the way a person did (otherwise one step off) | 14 / 21 = 67% | 45% to 83% |
+| Asks for another shot of a good photo (lower is better) | 5 / 47 = 11% | 5% to 23% |
+| Share of flags on planted claims that were the planted ones | 6 / 13 = 46% | 23% to 71% |
 
-The set is 72 photos and 6 planted claims, public or synthetic, not a production benchmark.
+Severity only feeds the rough repair range, which the adjuster confirms. The extra flags came mostly from one reused public photo read as old damage, which is defensible for that photo; every planted claim went to adjuster review, none to fast track.
 
-When a VIN was read, it was right (3 / 3); the three windshield-style synthetic VIN images were refused as not a VIN. The full set took 126 model calls, about $0.58 with an empty cache; the median call took 10 s, the 95th percentile 24 s.
-Extra flags on the planted claims came mostly from one reused public photo read as old damage, which is defensible for that photo. Every planted claim went to adjuster review; none went to fast track.
+The set is 72 photos and 6 planted claims, public or synthetic, not a production benchmark. The full run took 126 model calls, about $0.58 with an empty cache; the median call took 10 s, the 95th percentile 24 s.
 
 Full report: [server/eval/e1-report-2026-11-03.md](server/eval/e1-report-2026-11-03.md).
 
