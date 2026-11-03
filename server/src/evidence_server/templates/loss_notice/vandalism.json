@@ -1,0 +1,19 @@
+{
+  "id": "vandalism",
+  "label": "Vandalism or break-in",
+  "description": "Keyed, windows broken, tires slashed or broken into.",
+  "group": "Damage while parked",
+  "coverage": "comprehensive",
+  "sections": ["policy", "loss", "details", "vehicle", "damage", "witnesses", "documents", "declaration"],
+  "implied": {"cause": "Vandalism", "other_vehicle": "No"},
+  "reason_codes": [],
+  "flags": [],
+  "loss_event_type": {"default": "VANDALISM"},
+  "section_copy": {
+    "details": {"title": "What was done"}
+  },
+  "slot_copy": {
+    "damage_closeup": {"instructions": "Photograph each damaged spot before you clean or repair anything."},
+    "documents": {"instructions": "Take a photo of the police report slip, if you have one."}
+  }
+}

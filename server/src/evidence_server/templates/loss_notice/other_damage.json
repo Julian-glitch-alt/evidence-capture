@@ -1,0 +1,13 @@
+{
+  "id": "other_damage",
+  "label": "Other damage to my car",
+  "description": "Something else damaged the car and none of the cards above fits. About 5 minutes, with photos.",
+  "group": "Something else",
+  "sections": ["policy", "loss", "vehicle", "driver", "damage", "other_party", "witnesses", "documents", "declaration"],
+  "reason_codes": [],
+  "flags": [
+    {"if": {"field": "other_vehicle", "in": ["Yes"]}, "code": "MULTI_PARTY"},
+    {"if": {"field": "injuries", "in": ["Yes"]}, "code": "INJURY_REPORTED"}
+  ],
+  "loss_event_type": {"default": "UNKNOWN"}
+}

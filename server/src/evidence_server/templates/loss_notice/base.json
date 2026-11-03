@@ -1,0 +1,953 @@
+{
+  "id": "loss_notice",
+  "title": "Vehicle loss notice",
+  "_source": "Field structure follows ACORD 2 Automobile Loss Notice; wording and layout are our own.",
+  "quality": {
+    "min_sharpness": 60,
+    "min_brightness": 20,
+    "max_brightness": 235
+  },
+  "screen_titles": {
+    "when_where": "When and where",
+    "cause": "What happened",
+    "story": "In your own words",
+    "police": "Police report",
+    "theft_seen": "When you last saw the car",
+    "theft_keys": "Keys",
+    "theft_owner": "Ownership",
+    "theft_items": "Things inside",
+    "vehicle": "Your car",
+    "driver": "Driver",
+    "parts": "Where is the damage?",
+    "prior": "Damage from before",
+    "other_party": "The other vehicle",
+    "injuries": "Was anyone hurt?",
+    "witnesses": "Anyone who saw it?",
+    "contact_what": "What happened",
+    "contact_call": "How to reach you"
+  },
+  "screen_order": [
+    "when_where", "cause", "details", "theft_seen", "theft_keys", "theft_owner", "theft_items",
+    "story", "police", "vehicle", "driver", "parts", "prior", "other_party", "injuries",
+    "witnesses", "contact_what", "contact_call"
+  ],
+  "sections": {
+    "policy": {
+      "title": "Your policy",
+      "intro": "From your insurer's records. If something here is wrong, say so in the description.",
+      "fields": [],
+      "slots": []
+    },
+    "loss": {
+      "title": "What happened",
+      "fields": [
+        {
+          "id": "loss_date",
+          "screen": "when_where",
+          "type": "date",
+          "label": "What day did it happen?",
+          "required": true,
+          "fact": "incident_date"
+        },
+        {
+          "id": "loss_time",
+          "screen": "when_where",
+          "type": "time",
+          "label": "About what time?"
+        },
+        {
+          "id": "loss_street",
+          "screen": "when_where",
+          "type": "text",
+          "label": "Where did it happen?",
+          "hint": "A street, an intersection or the name of a place."
+        },
+        {
+          "id": "loss_city",
+          "screen": "when_where",
+          "type": "text",
+          "label": "City",
+          "required": true,
+          "fact": "loss_city"
+        },
+        {
+          "id": "loss_state",
+          "screen": "when_where",
+          "type": "text",
+          "label": "State",
+          "required": true,
+          "prefill": "policy_state",
+          "fact": "loss_state"
+        },
+        {
+          "id": "cause",
+          "screen": "cause",
+          "type": "choice",
+          "label": "How did it happen?",
+          "required": true,
+          "show_if": {
+            "field": "loss_type",
+            "in": ["vehicle_damage"]
+          },
+          "options": [
+            "Hit another vehicle",
+            "Hit an object",
+            "Hit while parked",
+            "Scrape or other"
+          ],
+          "other": "Scrape or other",
+          "proposed_options": [
+            "Hit an animal",
+            "Vandalism"
+          ],
+          "_proposed": "Comprehensive, not collision, in a US policy (coverage.COMPREHENSIVE_CAUSES). Offered only when LOSS_NOTICE_COMPREHENSIVE_CAUSES=on; a product decision for Julian (track 4)."
+        },
+        {
+          "id": "other_driver_left",
+          "screen": "cause",
+          "type": "choice",
+          "label": "Did the other driver leave without sharing their details?",
+          "options": [
+            "Yes",
+            "No"
+          ],
+          "show_if": {
+            "all": [
+              {
+                "field": "loss_type",
+                "in": ["vehicle_damage"]
+              },
+              {
+                "field": "cause",
+                "in": [
+                  "Hit another vehicle",
+                  "Hit while parked"
+                ]
+              }
+            ]
+          },
+          "required_if": {
+            "all": [
+              {
+                "field": "loss_type",
+                "in": ["vehicle_damage"]
+              },
+              {
+                "field": "cause",
+                "in": [
+                  "Hit another vehicle",
+                  "Hit while parked"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "description",
+          "screen": "story",
+          "type": "textarea",
+          "label": "What happened, in your own words?",
+          "required": true,
+          "hint": "A few sentences are fine: where you were, what happened and which part of the car.",
+          "fact": "loss_description"
+        },
+        {
+          "id": "police_contacted",
+          "screen": "police",
+          "type": "choice",
+          "label": "Were the police contacted?",
+          "required": true,
+          "show_if": {
+            "field": "loss_type",
+            "not_in": ["glass", "weather"]
+          },
+          "required_if": {
+            "field": "loss_type",
+            "not_in": ["glass", "weather"]
+          },
+          "options": [
+            "Yes",
+            "No",
+            "Not yet"
+          ],
+          "hint": "Your insurer may confirm the report with the department.",
+          "fact": "police_report_available"
+        },
+        {
+          "id": "police_agency",
+          "screen": "police",
+          "type": "text",
+          "label": "Which police department?",
+          "hint": "For example, Los Angeles Police Department.",
+          "show_if": {
+            "all": [
+              {
+                "field": "loss_type",
+                "not_in": ["glass", "weather"]
+              },
+              {
+                "field": "police_contacted",
+                "in": ["Yes"]
+              }
+            ]
+          },
+          "required_if": {
+            "all": [
+              {
+                "field": "loss_type",
+                "not_in": ["glass", "weather"]
+              },
+              {
+                "field": "police_contacted",
+                "in": ["Yes"]
+              }
+            ]
+          }
+        },
+        {
+          "id": "police_report_no",
+          "screen": "police",
+          "type": "text",
+          "label": "Police report number",
+          "hint": "If you have it. It is often on a card or slip from the officer.",
+          "show_if": {
+            "all": [
+              {
+                "field": "loss_type",
+                "not_in": ["glass", "weather"]
+              },
+              {
+                "field": "police_contacted",
+                "in": ["Yes"]
+              }
+            ]
+          }
+        },
+        {
+          "id": "police_officer",
+          "screen": "police",
+          "type": "text",
+          "label": "Officer's name or badge number",
+          "show_if": {
+            "all": [
+              {
+                "field": "loss_type",
+                "not_in": ["glass", "weather"]
+              },
+              {
+                "field": "police_contacted",
+                "in": ["Yes"]
+              }
+            ]
+          }
+        }
+      ],
+      "slots": []
+    },
+    "details": {
+      "title": "About what happened",
+      "fields": [
+        {
+          "id": "car_was",
+          "screen": "details",
+          "type": "choice",
+          "label": "Where was your car?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["hit_and_run"]},
+          "options": ["Parked", "Being driven"]
+        },
+        {
+          "id": "hit_what",
+          "screen": "details",
+          "type": "choice",
+          "label": "What did the car hit?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["single_vehicle"]},
+          "options": ["A pole or sign", "A fence, wall or guardrail", "Road debris or a pothole", "Another object", "Nothing, the car left the road"],
+          "other": "Another object"
+        },
+        {
+          "id": "animal",
+          "screen": "details",
+          "type": "choice",
+          "label": "What kind of animal?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["animal"]},
+          "options": ["Deer", "Another animal"],
+          "other": "Another animal"
+        },
+        {
+          "id": "vandalism_kind",
+          "screen": "details",
+          "type": "multiselect",
+          "label": "What happened to the car?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["vandalism"]},
+          "options": ["Scratched or keyed", "Windows broken", "Broken into", "Tires slashed", "Something else"],
+          "other": "Something else"
+        },
+        {
+          "id": "items_stolen",
+          "screen": "details",
+          "type": "textarea",
+          "label": "What was taken from the car?",
+          "show_if": {
+            "all": [
+              {"field": "loss_type", "in": ["vandalism"]},
+              {"field": "vandalism_kind", "contains": "Broken into"}
+            ]
+          }
+        },
+        {
+          "id": "glass_which",
+          "screen": "details",
+          "type": "multiselect",
+          "label": "Which glass is damaged?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["glass"]},
+          "options": ["Windshield", "A side window", "Rear window", "Sunroof", "Something else"],
+          "other": "Something else"
+        },
+        {
+          "id": "glass_kind",
+          "screen": "details",
+          "type": "choice",
+          "label": "How bad is it?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["glass"]},
+          "options": ["A small chip", "A crack", "Shattered"]
+        },
+        {
+          "id": "glass_cause",
+          "screen": "details",
+          "type": "choice",
+          "label": "What caused it?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["glass"]},
+          "options": ["A rock or road debris", "Don't know", "Something else"],
+          "other": "Something else"
+        },
+        {
+          "id": "weather_kind",
+          "screen": "details",
+          "type": "choice",
+          "label": "What happened?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["weather"]},
+          "options": ["Hail", "Flood or high water", "Fallen tree or branch", "A rock or other falling object", "Wind or another storm", "Something else"],
+          "other": "Something else"
+        },
+        {
+          "id": "water_level",
+          "screen": "details",
+          "type": "choice",
+          "label": "How high did the water reach?",
+          "required": true,
+          "show_if": {
+            "all": [
+              {"field": "loss_type", "in": ["weather"]},
+              {"field": "weather_kind", "in": ["Flood or high water"]}
+            ]
+          },
+          "required_if": {
+            "all": [
+              {"field": "loss_type", "in": ["weather"]},
+              {"field": "weather_kind", "in": ["Flood or high water"]}
+            ]
+          },
+          "options": ["Below the doors", "Up to the floor", "Up to the seats", "Up to the dashboard or higher"]
+        },
+        {
+          "id": "parts_taken",
+          "screen": "details",
+          "type": "multiselect",
+          "label": "What was taken?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["parts_theft"]},
+          "options": ["Catalytic converter", "Wheels or tires", "Battery", "Something else"],
+          "other": "Something else"
+        },
+        {
+          "id": "fire_start",
+          "screen": "details",
+          "type": "choice",
+          "label": "Where did the fire start?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["fire"]},
+          "options": ["Engine", "Inside the car", "Spread from something nearby", "Don't know", "Something else"],
+          "other": "Something else"
+        },
+        {
+          "id": "fire_dept",
+          "screen": "details",
+          "type": "choice",
+          "label": "Did the fire department come?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["fire"]},
+          "options": ["Yes", "No"]
+        },
+        {
+          "id": "last_seen_place",
+          "screen": "theft_seen",
+          "type": "text",
+          "label": "Where did you last see the car?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["vehicle_theft"]}
+        },
+        {
+          "id": "last_seen_time",
+          "screen": "theft_seen",
+          "type": "time",
+          "label": "About what time did you last see it?",
+          "show_if": {"field": "loss_type", "in": ["vehicle_theft"]}
+        },
+        {
+          "id": "keys_count",
+          "screen": "theft_keys",
+          "type": "choice",
+          "label": "How many keys do you have for this car?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["vehicle_theft"]},
+          "options": ["1", "2", "3 or more"]
+        },
+        {
+          "id": "keys_all",
+          "screen": "theft_keys",
+          "type": "choice",
+          "label": "Do you have all of them now?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["vehicle_theft"]},
+          "options": ["Yes, I have all of them", "No, some are missing"]
+        },
+        {
+          "id": "car_locked",
+          "screen": "theft_keys",
+          "type": "choice",
+          "label": "Was the car locked?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["vehicle_theft"]},
+          "options": ["Yes", "No", "Not sure"]
+        },
+        {
+          "id": "ownership",
+          "screen": "theft_owner",
+          "type": "choice",
+          "label": "Do you own the car outright?",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["vehicle_theft"]},
+          "options": ["I own it outright", "It has a loan", "It is leased"]
+        },
+        {
+          "id": "lender",
+          "screen": "theft_owner",
+          "type": "text",
+          "label": "Bank or leasing company",
+          "required": true,
+          "show_if": {
+            "all": [
+              {"field": "loss_type", "in": ["vehicle_theft"]},
+              {"field": "ownership", "in": ["It has a loan", "It is leased"]}
+            ]
+          },
+          "required_if": {
+            "all": [
+              {"field": "loss_type", "in": ["vehicle_theft"]},
+              {"field": "ownership", "in": ["It has a loan", "It is leased"]}
+            ]
+          }
+        },
+        {
+          "id": "items_in_car",
+          "screen": "theft_items",
+          "type": "textarea",
+          "label": "Was anything of yours inside?",
+          "show_if": {"field": "loss_type", "in": ["vehicle_theft"]}
+        }
+      ],
+      "slots": [
+        {
+          "id": "keys",
+          "kind": "photo",
+          "title": "The keys you have",
+          "required": true,
+          "show_if": {"field": "loss_type", "in": ["vehicle_theft"]},
+          "instructions": "Put every key you have for this car side by side and photograph them."
+        }
+      ]
+    },
+    "vehicle": {
+      "title": "Your vehicle",
+      "fields": [
+        {
+          "id": "vin",
+          "screen": "vehicle",
+          "type": "vin",
+          "label": "VIN",
+          "required": true,
+          "prefill": "policy_vin",
+          "hint": "17 characters. Bottom of the windshield on the driver's side, or the driver's door frame."
+        },
+        {
+          "id": "drivable",
+          "screen": "vehicle",
+          "type": "choice",
+          "label": "Can you drive it?",
+          "required": true,
+          "options": [
+            "Yes",
+            "No"
+          ],
+          "fact": "vehicle_drivable"
+        },
+        {
+          "id": "vehicle_location",
+          "screen": "vehicle",
+          "type": "text",
+          "label": "Where is the vehicle now?",
+          "show_if": {
+            "field": "drivable",
+            "in": [
+              "No"
+            ]
+          },
+          "required_if": {
+            "field": "drivable",
+            "in": [
+              "No"
+            ]
+          }
+        }
+      ],
+      "slots": [
+        {
+          "id": "plate",
+          "kind": "photo",
+          "title": "License plate",
+          "required": true,
+          "instructions": "Photograph the license plate so every character is readable."
+        },
+        {
+          "id": "vin_photo",
+          "kind": "photo",
+          "title": "VIN plate",
+          "required": true,
+          "instructions": "Photograph the VIN at the bottom of the windshield or on the driver's door frame."
+        },
+        {
+          "id": "odometer",
+          "kind": "photo",
+          "title": "Odometer",
+          "required_if": {
+            "field": "loss_type",
+            "not_in": ["glass"]
+          },
+          "instructions": "Switch on the ignition and photograph the odometer reading."
+        }
+      ]
+    },
+    "driver": {
+      "title": "Driver",
+      "fields": [
+        {
+          "id": "driver_is_holder",
+          "screen": "driver",
+          "type": "choice",
+          "label": "Were you driving?",
+          "required": true,
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": "driver_name",
+          "screen": "driver",
+          "type": "text",
+          "label": "Driver's full name",
+          "show_if": {
+            "field": "driver_is_holder",
+            "in": [
+              "No"
+            ]
+          },
+          "required_if": {
+            "field": "driver_is_holder",
+            "in": [
+              "No"
+            ]
+          }
+        },
+        {
+          "id": "driver_relation",
+          "screen": "driver",
+          "type": "text",
+          "label": "Driver's relationship to you",
+          "show_if": {
+            "field": "driver_is_holder",
+            "in": [
+              "No"
+            ]
+          }
+        }
+      ],
+      "slots": [
+        {
+          "id": "driver_license",
+          "kind": "photo",
+          "title": "Driver's license (front)",
+          "required": true,
+          "instructions": "Lay the license flat and photograph the front. Avoid glare."
+        }
+      ]
+    },
+    "damage": {
+      "title": "Damage",
+      "fields": [
+        {
+          "id": "damaged_areas",
+          "screen": "parts",
+          "widget": "car_parts",
+          "type": "multiselect",
+          "label": "Where is your car damaged?",
+          "required": true,
+          "hint": "Tap each damaged part. Left means the driver's side. Front left is the front corner on the driver's side.",
+          "options": [
+            "Front bumper",
+            "Hood",
+            "Front left",
+            "Front right",
+            "Left side",
+            "Right side",
+            "Rear left",
+            "Rear right",
+            "Rear bumper",
+            "Trunk or tailgate",
+            "Roof",
+            "Windshield",
+            "Rear window",
+            "Wheels or tires",
+            "Interior",
+            "Underneath"
+          ],
+          "fact": "damaged_areas"
+        },
+        {
+          "id": "damaged_other",
+          "screen": "parts",
+          "type": "textarea",
+          "label": "Another part, or anything we missed (optional)",
+          "hint": "If a part is not on the car picture, say where the damage is."
+        },
+        {
+          "id": "prior_damage",
+          "screen": "prior",
+          "type": "choice",
+          "label": "Was any of this damage there before?",
+          "required": true,
+          "options": [
+            "No",
+            "Yes",
+            "Not sure"
+          ],
+          "fact": "prior_damage_reported"
+        }
+      ],
+      "slots": [
+        {
+          "id": "walkaround",
+          "kind": "video",
+          "title": "Walk around the vehicle",
+          "show_if": {
+            "field": "loss_type",
+            "not_in": ["glass"]
+          },
+          "required_if": {
+            "field": "loss_type",
+            "not_in": ["glass", "parts_theft"]
+          },
+          "max_seconds": 60,
+          "instructions": "Start at the front. Walk slowly all the way around the vehicle, about 5 ft (1.5 m) away, keeping the whole vehicle in the frame. Takes about 30–45 seconds."
+        },
+        {
+          "id": "damage_closeup",
+          "kind": "photo",
+          "title": "Damage close-up",
+          "required": true,
+          "multiple": true,
+          "max_items": 6,
+          "instructions": "Get close to the damage. Take one photo per damaged area."
+        },
+        {
+          "id": "damage_wide",
+          "kind": "photo",
+          "title": "Damage in context",
+          "required": true,
+          "instructions": "Step back so the damage and the surrounding part of the vehicle are both visible."
+        }
+      ]
+    },
+    "other_party": {
+      "title": "Other vehicles and injuries",
+      "intro": "If another vehicle or a person was involved, an adjuster will handle your claim personally.",
+      "fields": [
+        {
+          "id": "other_vehicle",
+          "screen": "other_party",
+          "type": "choice",
+          "label": "Was another vehicle involved?",
+          "required": true,
+          "show_if": {
+            "field": "loss_type",
+            "in": ["vehicle_damage"]
+          },
+          "options": [
+            "Yes",
+            "No"
+          ],
+          "fact": "third_party_involved"
+        },
+        {
+          "id": "other_driver_name",
+          "screen": "other_party",
+          "type": "text",
+          "label": "Other driver's name",
+          "show_if": {
+            "all": [
+              {
+                "field": "other_vehicle",
+                "in": [
+                  "Yes"
+                ]
+              },
+              {
+                "field": "other_driver_left",
+                "not_in": [
+                  "Yes"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "other_driver_phone",
+          "screen": "other_party",
+          "type": "tel",
+          "label": "Other driver's phone",
+          "show_if": {
+            "all": [
+              {
+                "field": "other_vehicle",
+                "in": [
+                  "Yes"
+                ]
+              },
+              {
+                "field": "other_driver_left",
+                "not_in": [
+                  "Yes"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "other_plate",
+          "screen": "other_party",
+          "type": "text",
+          "label": "Other vehicle's plate",
+          "show_if": {
+            "field": "other_vehicle",
+            "in": [
+              "Yes"
+            ]
+          },
+          "hint": "If you saw it, even part of it."
+        },
+        {
+          "id": "other_vehicle_desc",
+          "screen": "other_party",
+          "type": "text",
+          "label": "Other vehicle's make and model",
+          "hint": "For example, white Toyota Camry.",
+          "show_if": {
+            "field": "other_vehicle",
+            "in": [
+              "Yes"
+            ]
+          }
+        },
+        {
+          "id": "other_insurer",
+          "screen": "other_party",
+          "type": "text",
+          "label": "Other driver's insurer",
+          "show_if": {
+            "all": [
+              {
+                "field": "other_vehicle",
+                "in": [
+                  "Yes"
+                ]
+              },
+              {
+                "field": "other_driver_left",
+                "not_in": [
+                  "Yes"
+                ]
+              }
+            ]
+          },
+          "fact": "third_party_insurer"
+        },
+        {
+          "id": "other_policy_no",
+          "screen": "other_party",
+          "type": "text",
+          "label": "Other driver's policy number",
+          "show_if": {
+            "all": [
+              {
+                "field": "other_vehicle",
+                "in": [
+                  "Yes"
+                ]
+              },
+              {
+                "field": "other_driver_left",
+                "not_in": [
+                  "Yes"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "injuries",
+          "screen": "injuries",
+          "type": "choice",
+          "label": "Was anyone hurt?",
+          "required": true,
+          "show_if": {
+            "field": "loss_type",
+            "in": ["vehicle_damage", "collision_vehicle", "hit_and_run", "single_vehicle", "animal", "other_damage"]
+          },
+          "options": [
+            "Yes",
+            "No"
+          ],
+          "fact": "injuries_reported"
+        }
+      ],
+      "slots": []
+    },
+    "witnesses": {
+      "title": "Witnesses",
+      "fields": [
+        {
+          "id": "witnesses",
+          "screen": "witnesses",
+          "type": "textarea",
+          "label": "Names and phone numbers of any witnesses"
+        }
+      ],
+      "slots": []
+    },
+    "documents": {
+      "title": "Photos of papers",
+      "intro": "Optional. Got a police report slip, a repair estimate or a towing receipt? Take a photo of the paper with the camera. You can skip this.",
+      "fields": [],
+      "slots": [
+        {
+          "id": "documents",
+          "kind": "photo",
+          "title": "Photo of a paper (optional)",
+          "multiple": true,
+          "max_items": 3,
+          "instructions": "Take a photo of a police report slip, a repair estimate or a towing receipt. You can skip this."
+        }
+      ]
+    },
+    "contact": {
+      "title": "Tell us briefly",
+      "intro": "Tell us a few things. An adjuster will call you to take this claim forward; no photos are needed now.",
+      "fields": [
+        {
+          "id": "what_happened",
+          "screen": "contact_what",
+          "type": "choice",
+          "label": "What kind of loss was it?",
+          "required": true,
+          "options": [
+            "Someone was hurt",
+            "Something else"
+          ]
+        },
+        {
+          "id": "description",
+          "screen": "contact_what",
+          "type": "textarea",
+          "label": "What happened, in your own words?",
+          "required": true,
+          "hint": "A few sentences are fine. An adjuster will call you.",
+          "fact": "loss_description"
+        },
+        {
+          "id": "callback_phone",
+          "screen": "contact_call",
+          "type": "tel",
+          "label": "Best phone number to reach you",
+          "required": true,
+          "prefill": "policy_holder_phone"
+        },
+        {
+          "id": "callback_time",
+          "screen": "contact_call",
+          "type": "text",
+          "label": "Best time to call"
+        }
+      ],
+      "slots": []
+    },
+    "declaration": {
+      "title": "Check and sign",
+      "fields": [
+        {
+          "id": "full_name",
+          "type": "text",
+          "label": "Your full name",
+          "required": true,
+          "prefill": "policy_holder_name"
+        },
+        {
+          "id": "agree",
+          "type": "checkbox",
+          "label": "I confirm the information in this claim is true to the best of my knowledge.",
+          "required": true
+        }
+      ],
+      "slots": [
+        {
+          "id": "signature",
+          "kind": "signature",
+          "title": "Your signature",
+          "required": true,
+          "skippable": false,
+          "instructions": "Sign with your finger or a stylus."
+        }
+      ]
+    }
+  },
+  "fraud_warnings": {
+    "_note": "Demo wording modelled on common state notices; not legal advice.",
+    "CA": "Any person who knowingly presents a false or fraudulent claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.",
+    "NY": "Any person who knowingly and with intent to defraud any insurance company or other person files a statement of claim containing any materially false information, or conceals for the purpose of misleading information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty.",
+    "TX": "Any person who knowingly presents a false or fraudulent claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.",
+    "default": "Any person who knowingly and with intent to defraud presents a false or fraudulent claim may be guilty of a crime and subject to fines, confinement and civil penalties."
+  },
+  "skip_reasons": [
+    "I can't reach or see it",
+    "It's too dark",
+    "My camera won't work",
+    "Other"
+  ]
+}

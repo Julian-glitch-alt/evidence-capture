@@ -1,0 +1,65 @@
+{
+  "org": {"id": "org_demo", "name": "Demo Mutual Insurance", "default_tz": "America/New_York"},
+  "_note": "Simulated policy administration system. All people, plates, VINs and licence numbers are invented.",
+  "policies": [
+    {
+      "policy_no": "DEMO-AUTO-1001",
+      "state": "CA",
+      "effective": "2026-03-01",
+      "expires": "2027-03-01",
+      "holder": {"name": "Jordan Avery", "phone": "+1 415 555 0101", "email": "jordan.avery@example.com"},
+      "drivers": [{"name": "Jordan Avery", "licence_no": "D0000101", "licence_state": "CA"}],
+      "vehicles": [{"vin": "1HGCV1F39LA526018", "plate": "DEMO101", "year": 2020, "make": "Honda", "model": "Accord"}],
+      "coverages": {
+        "collision": {"deductible": 500},
+        "comprehensive": {"deductible": 250},
+        "liability": {"limits": "100/300/100"}
+      }
+    },
+    {
+      "policy_no": "DEMO-AUTO-1002",
+      "state": "TX",
+      "effective": "2026-06-15",
+      "expires": "2027-06-15",
+      "holder": {"name": "Sam Rivera", "phone": "+1 512 555 0102", "email": "sam.rivera@example.com"},
+      "drivers": [
+        {"name": "Sam Rivera", "licence_no": "D0000102", "licence_state": "TX"},
+        {"name": "Alex Rivera", "licence_no": "D0000103", "licence_state": "TX"}
+      ],
+      "vehicles": [{"vin": "5YJ3E1EA8MA159083", "plate": "DEMO102", "year": 2021, "make": "Tesla", "model": "Model 3"}],
+      "coverages": {
+        "collision": {"deductible": 1000},
+        "comprehensive": {"deductible": 500},
+        "liability": {"limits": "50/100/50"}
+      }
+    },
+    {
+      "policy_no": "DEMO-AUTO-1003",
+      "state": "NY",
+      "effective": "2026-01-10",
+      "expires": "2027-01-10",
+      "holder": {"name": "Casey Morgan", "phone": "+1 718 555 0104", "email": "casey.morgan@example.com"},
+      "drivers": [{"name": "Casey Morgan", "licence_no": "D0000104", "licence_state": "NY"}],
+      "vehicles": [{"vin": "1FTFW1E5XNA016613", "plate": "DEMO103", "year": 2022, "make": "Ford", "model": "F-150"}],
+      "coverages": {
+        "liability": {"limits": "25/50/10"}
+      },
+      "_demo_purpose": "liability only: no collision coverage for own damage"
+    },
+    {
+      "policy_no": "DEMO-AUTO-1004",
+      "state": "AZ",
+      "effective": "2025-09-01",
+      "expires": "2026-09-01",
+      "holder": {"name": "Riley Chen", "phone": "+1 602 555 0105", "email": "riley.chen@example.com"},
+      "drivers": [{"name": "Riley Chen", "licence_no": "D0000105", "licence_state": "AZ"}],
+      "vehicles": [{"vin": "JTDKARFU1PA186091", "plate": "DEMO104", "year": 2023, "make": "Toyota", "model": "Prius"}],
+      "coverages": {
+        "collision": {"deductible": 500},
+        "comprehensive": {"deductible": 500},
+        "liability": {"limits": "25/50/15"}
+      },
+      "_demo_purpose": "expired before the hackathon: loss date falls outside the policy period"
+    }
+  ]
+}

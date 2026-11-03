@@ -1,0 +1,50 @@
+{
+  "_what": "Public ballpark repair costs per damage type and severity, USD, parts and labour, one damaged item. For a rough range only, never an estimate: no vehicle model, no local labour rate, no hidden damage. null = no trustworthy public figure; an appraiser prices it.",
+  "_sources_quality": "Mostly US repair-shop and price-guide pages (2025-2026), read 31 Oct 2026. Ranges are rounded and kept wide. Round 2: better sources and calibration on real estimates.",
+  "retrieved": "2026-10-31",
+  "currency": "USD",
+  "types": {
+    "BUMPER_DAMAGE": {
+      "minor": [150, 600], "moderate": [300, 1400], "severe": [600, 3500],
+      "sources": ["https://reluxcollision.com/blog/how-much-is-a-bumper-repair-cost/", "https://pro-collision.net/blog/bumper-repair-cost-repair-vs-replace", "https://www.ottofixit.com/insights/bumper-repair-cost-2026"]
+    },
+    "BODY_PANEL_DENT": {
+      "minor": [75, 500], "moderate": [500, 1500], "severe": [800, 3500],
+      "sources": ["https://dentevo.com/how-much-does-pdr-cost/", "https://khauto.com/blog/car-fender-repair-vs-replacement-guide/", "https://www.caliber.com/services/collision/collision-repair/how-much-does-car-repair-cost"]
+    },
+    "SCRATCH_SCUFF": {
+      "minor": [100, 600], "moderate": [300, 1200], "severe": [1200, 2500],
+      "sources": ["https://reluxcollision.com/blog/how-much-is-a-bumper-repair-cost/", "https://www.flexautofl.com/post/how-much-does-it-cost-to-fix-a-bumper", "https://khauto.com/blog/car-fender-repair-vs-replacement-guide/"]
+    },
+    "LIGHTING_DAMAGE": {
+      "minor": [150, 500], "moderate": [250, 1000], "severe": [800, 4400],
+      "sources": ["https://hawkglow.com/blogs/news/headlight-assembly-replacement-cost-guide", "https://www.autonationmobileservice.com/i/blog/headlight-replacement-cost/"]
+    },
+    "GLASS_DAMAGE": {
+      "minor": [100, 600], "moderate": [250, 1200], "severe": [600, 1800],
+      "sources": ["https://reluxcollision.com/blog/how-much-should-a-replacement-windshield-cost/"]
+    },
+    "MIRROR_DAMAGE": {
+      "minor": [75, 450], "moderate": [150, 600], "severe": [200, 1000],
+      "sources": ["https://vehicleruns.com/maintenance-repair/mirror/replacement-cost/", "https://davesmetroautoglassaz.com/sideview-mirror-replacement-cost/"]
+    },
+    "WHEEL_TIRE_DAMAGE": {
+      "minor": [75, 350], "moderate": [120, 600], "severe": [340, 1200],
+      "sources": ["https://thecostguys.com/auto/bent-rim-repair", "https://www.jdpower.com/cars/shopping-guides/how-much-does-it-cost-to-replace-tires"]
+    },
+    "HAIL_DENTS": {
+      "minor": [500, 1500], "moderate": [1500, 5000], "severe": [5000, 15000],
+      "sources": ["https://autorepairestimate.ai/costs/paintless-dent-repair", "https://www.rockymountaindents.com/what-does-paintless-dent-repair-cost-in-denver/"]
+    },
+    "WATER_DAMAGE": {
+      "minor": [500, 3000], "moderate": [3000, 8000], "severe": [8000, 25000],
+      "sources": ["https://www.autobodyrepairs.net/does-insurance-cover-flood-damage/", "https://www.auto4export.com/blog/is-a-flood-damaged-car-repairable-guide-for-smart-buyers"]
+    },
+    "UNDERCARRIAGE_DAMAGE": {
+      "minor": [200, 600], "moderate": [600, 1500], "severe": null,
+      "sources": ["https://www.auto4export.com/blog/what-does-undercarriage-damage-mean-a-complete-guide-for-auction-buyers"]
+    },
+    "FIRE_DAMAGE": {"minor": null, "moderate": null, "severe": null, "sources": []},
+    "INTERIOR_DAMAGE": {"minor": null, "moderate": null, "severe": null, "sources": []}
+  }
+}

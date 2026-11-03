@@ -1,0 +1,151 @@
+{
+ "measured_on": "2026-11-03",
+ "model": "Muse Spark Open",
+ "host": "Fireworks",
+ "provider": "fireworks",
+ "set": {
+  "photos": 72,
+  "claims": 6,
+  "about": "Public photos (Wikimedia Commons, free licences) labelled by hand, plates, VIN labels and odometers drawn with exact answers, and blurred, dark and messaging-app copies. A test set, not claims from this deployment."
+ },
+ "rows": [
+  {
+   "id": "plate",
+   "label": "Reads the license plate exactly",
+   "hits": 15,
+   "n": 20,
+   "ci": [
+    0.5313,
+    0.8881
+   ],
+   "lower_is_better": false
+  },
+  {
+   "id": "vin",
+   "label": "Reads the VIN exactly",
+   "hits": 3,
+   "n": 6,
+   "ci": [
+    0.1876,
+    0.8124
+   ],
+   "lower_is_better": false
+  },
+  {
+   "id": "odometer",
+   "label": "Reads the odometer exactly",
+   "hits": 7,
+   "n": 7,
+   "ci": [
+    0.6457,
+    1.0
+   ],
+   "lower_is_better": false
+  },
+  {
+   "id": "retake_caught",
+   "label": "Asks for another shot of a blurred, dark, wrong or unreadable photo",
+   "hits": 25,
+   "n": 25,
+   "ci": [
+    0.8668,
+    1.0
+   ],
+   "lower_is_better": false
+  },
+  {
+   "id": "retake_false",
+   "label": "Asks for another shot of a good photo",
+   "hits": 5,
+   "n": 47,
+   "ci": [
+    0.0463,
+    0.2259
+   ],
+   "lower_is_better": true
+  },
+  {
+   "id": "damage_found",
+   "label": "Finds each damaged area a person marked",
+   "hits": 21,
+   "n": 21,
+   "ci": [
+    0.8454,
+    1.0
+   ],
+   "lower_is_better": false
+  },
+  {
+   "id": "damage_placed",
+   "label": "Names areas a person also marked, or the one next to it",
+   "hits": 32,
+   "n": 37,
+   "ci": [
+    0.7202,
+    0.9409
+   ],
+   "lower_is_better": false
+  },
+  {
+   "id": "damage_type",
+   "label": "Names the right kind of damage",
+   "hits": 21,
+   "n": 21,
+   "ci": [
+    0.8454,
+    1.0
+   ],
+   "lower_is_better": false
+  },
+  {
+   "id": "severity",
+   "label": "Rates the severity the way a person did",
+   "hits": 14,
+   "n": 21,
+   "ci": [
+    0.4537,
+    0.8281
+   ],
+   "lower_is_better": false
+  },
+  {
+   "id": "false_damage",
+   "label": "Calls an undamaged car damaged",
+   "hits": 0,
+   "n": 9,
+   "ci": [
+    0.0,
+    0.2991
+   ],
+   "lower_is_better": true
+  },
+  {
+   "id": "planted_caught",
+   "label": "Raises the planted flag on a claim with a planted problem",
+   "hits": 6,
+   "n": 6,
+   "ci": [
+    0.6097,
+    1.0
+   ],
+   "lower_is_better": false
+  },
+  {
+   "id": "flags_planted",
+   "label": "Flags raised on those claims that were planted",
+   "hits": 6,
+   "n": 13,
+   "ci": [
+    0.2321,
+    0.7086
+   ],
+   "lower_is_better": false
+  }
+ ],
+ "cost": {
+  "calls": 126,
+  "usd": 0.581,
+  "p50_s": 10.07,
+  "p95_s": 23.746
+ }
+}

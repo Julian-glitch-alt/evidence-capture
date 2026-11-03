@@ -1,0 +1,17 @@
+{
+  "id": "animal",
+  "label": "Hit an animal",
+  "description": "A deer or another animal.",
+  "group": "Crash",
+  "coverage": "comprehensive",
+  "sections": ["policy", "loss", "details", "vehicle", "driver", "damage", "other_party", "witnesses", "documents", "declaration"],
+  "implied": {"cause": "Hit an animal", "other_vehicle": "No"},
+  "reason_codes": [],
+  "flags": [
+    {"if": {"field": "injuries", "in": ["Yes"]}, "code": "INJURY_REPORTED"}
+  ],
+  "loss_event_type": {"default": "ANIMAL"},
+  "section_copy": {
+    "details": {"title": "About the animal"}
+  }
+}

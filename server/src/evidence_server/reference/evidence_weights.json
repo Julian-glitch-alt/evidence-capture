@@ -1,0 +1,56 @@
+{
+  "version": "evidence-weights/v1",
+  "_note": "Every number here is an ASSUMPTION until labelled outcomes of SIU referrals replace it (docs/explorations/evidence-math.md). log10 likelihood ratio: LR = P(signal | claim needs investigation) / P(signal | honest claim); 0.3 doubles the odds, 0.5 about triples them, 1.0 multiplies them by ten. One value per root cause (proposal.ROOT_CAUSES) and level: 'conflict' (a check failed) or 'review' (a check was unclear or a routing reason). 'missing': true marks a cause that only says a check could not run; it adds nothing and is listed as missing, never as clean evidence.",
+  "prior": {
+    "p": 0.05,
+    "source": "assumed",
+    "rationale": "Share of photo-based auto physical damage claims that, on review, warrant SIU screening. No primary source found for this line: the Insurance Research Council's 21% / 18% 'appearance of fraud or buildup' figures (2012 data) are for bodily injury and PIP claims, not physical damage, so they are not used."
+  },
+  "bands": {
+    "moderate": 0.5,
+    "strong": 1.0,
+    "source": "Kass and Raftery (1995), Bayes Factors, JASA 90(430): log10 Bayes factor 0 to 0.5 'not worth more than a bare mention', 0.5 to 1 'substantial', above 1 'strong'.",
+    "rationale": "Bands are cut on the evidence alone (the sum of log10 LR), not on the prior, so the same signals read the same on every claim."
+  },
+  "model_only_cap": {
+    "log10_lr": 0.3,
+    "source": "assumed",
+    "rationale": "Causes resting on a model's judgment alone (proposal.MODEL_ONLY) add at most 0.3 together, and never make a claim eligible for SIU screening on their own (track 2's rule)."
+  },
+  "default": {
+    "conflict": 0.3,
+    "review": 0.1,
+    "source": "assumed",
+    "rationale": "A reason code with no entry below (a new check from another track); a warning is logged once per cause until it gets its own row."
+  },
+  "causes": {
+    "policy_on_file": {"missing": true, "source": "assumed", "rationale": "No policy on file: the vehicle, driver and period checks could not run. That is missing evidence, not a signal."},
+    "analysis_missing": {"missing": true, "source": "assumed", "rationale": "A photo check, damage reading or statement check did not run (model down, budget cap). Missing, never clean."},
+    "policy_period": {"conflict": 0.7, "review": 0.2, "source": "assumed", "rationale": "A loss dated outside the policy period is a classic red flag with few honest explanations; a missing loss date is weaker."},
+    "coverage": {"conflict": 0.2, "review": 0.1, "source": "assumed", "rationale": "Claiming a coverage that was not bought is usually a misunderstanding of the policy."},
+    "vehicle_identity": {"conflict": 0.5, "review": 0.2, "source": "assumed", "rationale": "VIN or plate not on the policy; a newly bought car not yet endorsed is a common honest cause, so moderate."},
+    "driver": {"conflict": 0.3, "review": 0.15, "source": "assumed", "rationale": "Driver not listed or licence problem: mostly a coverage question, sometimes concealment."},
+    "odometer": {"conflict": 0.5, "review": 0.2, "source": "assumed", "rationale": "Mileage implausible for the vehicle's age or the policy record."},
+    "photo_quality": {"conflict": 0.1, "review": 0.05, "source": "assumed", "rationale": "Unreadable or poor photos are mostly light and phone problems; a little weight because evasion looks the same."},
+    "damage_location": {"conflict": 0.4, "review": 0.2, "source": "assumed", "rationale": "Damage where the claimant did not say it was (model read compared in code, so a code verdict)."},
+    "prior_damage": {"conflict": 0.3, "review": 0.2, "source": "assumed", "rationale": "Model-only: the damage reading calls some damage old. Capped with the other model-only causes."},
+    "story": {"conflict": 0.3, "review": 0.15, "source": "assumed", "rationale": "Model-only: statement and damage do not fit. Capped with the other model-only causes."},
+    "screen_recapture": {"conflict": 0.3, "review": 0.3, "source": "assumed", "rationale": "Model-only: a photo may show a screen or a print. Capped with the other model-only causes."},
+    "evidence_missing": {"conflict": 0.3, "review": 0.3, "source": "assumed", "rationale": "The claimant skipped a required photo or video: a behaviour, not a failed check."},
+    "coaching": {"conflict": 0.5, "review": 0.4, "source": "assumed", "rationale": "Retakes or form edits after a mismatch hint, found by code from the capture log."},
+    "fnol_statement": {"conflict": 0.4, "review": 0.3, "source": "assumed", "rationale": "The story changed between first notice and the statement."},
+    "police_report": {"conflict": 0.2, "review": 0.2, "source": "assumed", "rationale": "A hit-and-run claim with no police report: carriers usually require one, and an untraceable other driver is a known phantom-vehicle pattern; often the claimant simply has not filed yet, so weak."},
+    "keys": {"conflict": 0.3, "review": 0.3, "source": "assumed", "rationale": "Carriers ask for every key after a theft; a missing key is a common question in theft investigations, often with an honest answer."},
+    "claim_type": {"conflict": 0.3, "review": 0.2, "source": "assumed", "rationale": "The photos do not show the kind of damage the claim type implies; often a wrong type chosen by the claimant."},
+    "duplicate": {"conflict": 1.0, "review": 0.7, "source": "assumed", "rationale": "A possible duplicate of another claim is one of the strongest single indicators."},
+    "total_loss": {"conflict": 0.2, "review": 0.2, "source": "assumed", "rationale": "Severe fire or water damage: a total-loss question first, a weak indicator second."},
+    "multi_party": {"conflict": 0.0, "review": 0.0, "source": "assumed", "rationale": "Another vehicle involved: a routing reason, not evidence."},
+    "injury": {"conflict": 0.0, "review": 0.0, "source": "assumed", "rationale": "Someone was hurt: a routing reason, not evidence (injury buildup is outside this photo product)."},
+    "loss_type": {"conflict": 0.0, "review": 0.0, "source": "assumed", "rationale": "A loss type not handled from photos: a routing reason, not evidence."}
+  },
+  "cost": {
+    "siu_review_cost": {"value": 1000, "source": "assumed", "rationale": "Dollars of SIU time to screen one referral (desk review, records, a call)."},
+    "honest_friction_cost": {"value": 250, "source": "assumed", "rationale": "Dollars of cost when an honest claimant is screened: delay, handling, complaints and churn risk."},
+    "recovery_rate": {"value": 0.5, "source": "assumed", "rationale": "Share of the claim value avoided when screening finds a real problem (many problems are inflation, not a whole fake claim)."}
+  }
+}

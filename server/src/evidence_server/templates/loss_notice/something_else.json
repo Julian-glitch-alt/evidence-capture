@@ -1,0 +1,11 @@
+{
+  "id": "something_else",
+  "label": "Something else",
+  "description": "Someone was hurt, or you would rather talk to an adjuster. An adjuster will call you.",
+  "group": "Something else",
+  "sections": ["policy", "contact", "declaration"],
+  "reason_codes": ["LOSS_TYPE_OUT_OF_PHOTO_LANE"],
+  "flags": [],
+  "loss_event_type": {"from_field": "what_happened",
+                      "map": {"Someone was hurt": "INJURY", "Something else": "UNKNOWN"}}
+}

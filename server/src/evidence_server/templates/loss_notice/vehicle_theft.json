@@ -1,0 +1,20 @@
+{
+  "id": "vehicle_theft",
+  "label": "Car stolen",
+  "description": "Your car is gone. An adjuster will call you.",
+  "group": "Stolen",
+  "coverage": "comprehensive",
+  "sections": ["policy", "loss", "details", "witnesses", "documents", "declaration"],
+  "implied": {"cause": "Vehicle theft", "other_vehicle": "No"},
+  "reason_codes": ["LOSS_TYPE_OUT_OF_PHOTO_LANE"],
+  "flags": [
+    {"if": {"field": "keys_all", "in": ["No, some are missing"]}, "code": "KEYS_MISSING"}
+  ],
+  "loss_event_type": {"default": "THEFT"},
+  "section_copy": {
+    "details": {"title": "About the theft"}
+  },
+  "slot_copy": {
+    "documents": {"instructions": "Take a photo of the police report slip, if you have one."}
+  }
+}

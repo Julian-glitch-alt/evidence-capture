@@ -1,0 +1,14 @@
+{
+  "id": "vehicle_damage",
+  "hidden": true,
+  "label": "My car was damaged",
+  "description": "A crash, a scrape, or something hit it. About 5 minutes, with photos and a short video.",
+  "sections": ["policy", "loss", "vehicle", "driver", "damage", "other_party", "witnesses", "documents", "declaration"],
+  "reason_codes": [],
+  "flags": [
+    {"if": {"field": "other_vehicle", "in": ["Yes"]}, "code": "MULTI_PARTY"},
+    {"if": {"field": "injuries", "in": ["Yes"]}, "code": "INJURY_REPORTED"}
+  ],
+  "loss_event_type": {"default": "SINGLE_VEHICLE_COLLISION", "if": {"field": "other_vehicle", "in": ["Yes"]}, "then": "MULTI_VEHICLE",
+                      "by_field": {"field": "cause", "map": {"Vandalism": "VANDALISM"}}}
+}

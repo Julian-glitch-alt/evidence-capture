@@ -1,0 +1,357 @@
+{
+  "version": 1,
+  "_note": "Synthetic CI fixture: the images are coloured placeholders and every model answer is recorded in replay.json. Not a measurement of the model.",
+  "policy": "DEMO-AUTO-1001",
+  "today": "2026-11-01",
+  "answers": {
+    "loss_type": "vehicle_damage",
+    "loss_date": "2026-10-27",
+    "loss_time": "17:30",
+    "loss_city": "San Jose",
+    "loss_state": "CA",
+    "cause": "Hit an object",
+    "description": "Backed into a bollard in a parking lot.",
+    "police_contacted": "No",
+    "vin": "1HGCV1F39LA526018",
+    "drivable": "Yes",
+    "driver_is_holder": "Yes",
+    "damaged_areas": [
+      "Rear bumper"
+    ],
+    "prior_damage": "No",
+    "other_vehicle": "No",
+    "injuries": "No",
+    "full_name": "Jordan Avery"
+  },
+  "photos": [
+    {
+      "id": "p01",
+      "path": "images/p01_plate_demo101.png",
+      "slot": "plate",
+      "expected": {
+        "plate": "DEMO101"
+      }
+    },
+    {
+      "id": "p02",
+      "path": "images/p02_plate_7abc123.png",
+      "slot": "plate",
+      "expected": {
+        "plate": "7ABC123"
+      }
+    },
+    {
+      "id": "p03",
+      "path": "images/p03_plate_blurred.png",
+      "slot": "plate",
+      "expected": {
+        "plate": "8XYZ456"
+      }
+    },
+    {
+      "id": "p04",
+      "path": "images/p04_vin_policy.png",
+      "slot": "vin_photo",
+      "expected": {
+        "vin": "1HGCV1F39LA526018"
+      }
+    },
+    {
+      "id": "p05",
+      "path": "images/p05_vin_other_car.png",
+      "slot": "vin_photo",
+      "expected": {
+        "vin": "5YJ3E1EA8MA159083"
+      }
+    },
+    {
+      "id": "p06",
+      "path": "images/p06_vin_glare.png",
+      "slot": "vin_photo",
+      "expected": {
+        "vin": "1HGCV1F39LA526018"
+      }
+    },
+    {
+      "id": "p07",
+      "path": "images/p07_odo_56947.png",
+      "slot": "odometer",
+      "expected": {
+        "odometer": 56947
+      }
+    },
+    {
+      "id": "p08",
+      "path": "images/p08_odo_41230_tenths.png",
+      "slot": "odometer",
+      "expected": {
+        "odometer": 41230
+      }
+    },
+    {
+      "id": "p09",
+      "path": "images/p09_close_rear_bumper.png",
+      "slot": "damage_closeup",
+      "expected": {
+        "damages": [
+          {
+            "area": "Rear bumper",
+            "type": "BUMPER_DAMAGE",
+            "severity": "moderate",
+            "age": "new"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p10",
+      "path": "images/p10_wide_rear.png",
+      "slot": "damage_wide",
+      "expected": {
+        "damages": [
+          {
+            "area": "Rear bumper",
+            "type": "BUMPER_DAMAGE",
+            "severity": "moderate",
+            "age": "new"
+          },
+          {
+            "area": "Trunk or tailgate",
+            "type": "SCRATCH_SCUFF",
+            "severity": "minor",
+            "age": "new"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p11",
+      "path": "images/p11_close_front_left_light.png",
+      "slot": "damage_closeup",
+      "expected": {
+        "damages": [
+          {
+            "area": "Front left",
+            "type": "LIGHTING_DAMAGE",
+            "severity": "moderate",
+            "age": "new"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p12",
+      "path": "images/p12_wide_undamaged.png",
+      "slot": "damage_wide",
+      "expected": {
+        "damages": []
+      }
+    },
+    {
+      "id": "p13",
+      "path": "images/p13_wide_undamaged_reflection.png",
+      "slot": "damage_wide",
+      "expected": {
+        "damages": []
+      }
+    },
+    {
+      "id": "p14",
+      "path": "images/p14_wide_old_right_dent.png",
+      "slot": "damage_wide",
+      "expected": {
+        "damages": [
+          {
+            "area": "Right side",
+            "type": "BODY_PANEL_DENT",
+            "severity": "moderate",
+            "age": "old"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p15",
+      "path": "images/p15_close_flood.png",
+      "slot": "damage_closeup",
+      "expected": {
+        "damages": [
+          {
+            "area": "Front bumper",
+            "type": "WATER_DAMAGE",
+            "severity": "severe",
+            "age": "new"
+          }
+        ]
+      }
+    },
+    {
+      "id": "p16",
+      "path": "images/p16_wide_rear_left.png",
+      "slot": "damage_wide",
+      "expected": {
+        "damages": [
+          {
+            "area": "Rear left",
+            "type": "BODY_PANEL_DENT",
+            "severity": "minor",
+            "age": "new"
+          }
+        ]
+      }
+    }
+  ],
+  "claims": [
+    {
+      "id": "e2-01",
+      "note": "Clean claim: the statement fits the photos.",
+      "photos": [
+        "p09",
+        "p10"
+      ],
+      "answers": {
+        "description": "Backed into a bollard in a parking lot.",
+        "damaged_areas": [
+          "Rear bumper",
+          "Trunk or tailgate"
+        ]
+      },
+      "expected_flags": []
+    },
+    {
+      "id": "e2-02",
+      "note": "Planted: the story says front left, the photo shows the rear bumper. One root cause, so a person reviews; SIU is not expected.",
+      "photos": [
+        "p09"
+      ],
+      "answers": {
+        "description": "Turned left out of a driveway and hit a pole with the front left corner.",
+        "damaged_areas": [
+          "Front left"
+        ]
+      },
+      "expected_flags": [
+        "DAMAGE_AREA_MISMATCH",
+        "DAMAGE_OUTSIDE_STATEMENT",
+        "STORY_INCONSISTENT"
+      ],
+      "expected_lane": "adjuster_review"
+    },
+    {
+      "id": "e2-03",
+      "note": "Planted: older damage on the right side while the claimant said none was there before.",
+      "photos": [
+        "p11",
+        "p14"
+      ],
+      "answers": {
+        "description": "Clipped a concrete post with the front left corner in a parking garage.",
+        "damaged_areas": [
+          "Front left"
+        ],
+        "prior_damage": "No"
+      },
+      "expected_flags": [
+        "PRIOR_DAMAGE_SUSPECTED"
+      ],
+      "expected_lane": "adjuster_review"
+    },
+    {
+      "id": "e2-04",
+      "note": "Planted: new front left damage the claim does not list.",
+      "photos": [
+        "p09",
+        "p11"
+      ],
+      "answers": {
+        "description": "Backed into a bollard while leaving the office car park.",
+        "damaged_areas": [
+          "Rear bumper"
+        ],
+        "prior_damage": "Not sure"
+      },
+      "expected_flags": [
+        "DAMAGE_AREA_MISMATCH",
+        "DAMAGE_OUTSIDE_STATEMENT"
+      ],
+      "expected_lane": "adjuster_review"
+    },
+    {
+      "id": "e2-05",
+      "note": "Planted: severity too high for the story (place fits, so unsure rather than no).",
+      "photos": [
+        "p10"
+      ],
+      "answers": {
+        "description": "A shopping cart rolled into the back of the car at walking speed.",
+        "damaged_areas": [
+          "Rear bumper",
+          "Trunk or tailgate"
+        ]
+      },
+      "expected_flags": [
+        "STORY_UNCLEAR"
+      ],
+      "expected_lane": "adjuster_review"
+    },
+    {
+      "id": "e2-06",
+      "note": "Planted: severe water damage, a possible total loss.",
+      "photos": [
+        "p15"
+      ],
+      "answers": {
+        "description": "Drove through a flooded underpass and water came over the front bumper.",
+        "damaged_areas": [
+          "Front bumper"
+        ]
+      },
+      "expected_flags": [
+        "POSSIBLE_TOTAL_LOSS"
+      ],
+      "expected_lane": "adjuster_review"
+    },
+    {
+      "id": "e2-07",
+      "note": "Planted: rear-ended, but the photo shows front left damage; the recorded model answer misses it (a known-wrong answer).",
+      "photos": [
+        "p11"
+      ],
+      "answers": {
+        "description": "Stopped at a red light when another car hit the back of my car.",
+        "damaged_areas": [
+          "Rear bumper"
+        ],
+        "other_vehicle": "Yes",
+        "prior_damage": "Not sure"
+      },
+      "expected_flags": [
+        "DAMAGE_AREA_MISMATCH",
+        "DAMAGE_OUTSIDE_STATEMENT",
+        "MULTI_PARTY",
+        "STORY_INCONSISTENT"
+      ],
+      "expected_lane": "adjuster_review",
+      "submit_codes": [
+        "MULTI_PARTY"
+      ]
+    },
+    {
+      "id": "e2-08",
+      "note": "The damage reading fails: the checks must say 'not read' and ask a person, never pass.",
+      "photos": [
+        "p16"
+      ],
+      "answers": {
+        "description": "Scraped the rear left door on a parking garage pillar.",
+        "damaged_areas": [
+          "Rear left"
+        ]
+      },
+      "expected_flags": [
+        "DAMAGE_NOT_READ"
+      ],
+      "expected_lane": "adjuster_review"
+    }
+  ]
+}

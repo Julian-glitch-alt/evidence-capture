@@ -1,0 +1,22 @@
+{
+  "id": "parts_theft",
+  "label": "Parts stolen",
+  "description": "A catalytic converter, wheels or another part was taken.",
+  "group": "Damage while parked",
+  "coverage": "comprehensive",
+  "sections": ["policy", "loss", "details", "vehicle", "damage", "witnesses", "documents", "declaration"],
+  "implied": {"cause": "Parts theft", "other_vehicle": "No"},
+  "reason_codes": [],
+  "flags": [],
+  "loss_event_type": {"default": "THEFT_PARTS"},
+  "section_copy": {
+    "details": {"title": "What was taken"}
+  },
+  "slot_copy": {
+    "damage_closeup": {"title": "Where the part was taken",
+                       "instructions": "Photograph the spot the part was cut or removed, for example under the car."},
+    "damage_wide": {"title": "The car from the side",
+                    "instructions": "Step back so the whole side of the car is in the photo."},
+    "documents": {"instructions": "Take a photo of the police report slip, if you have one."}
+  }
+}

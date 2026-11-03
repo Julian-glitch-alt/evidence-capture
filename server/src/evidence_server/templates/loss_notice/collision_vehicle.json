@@ -1,0 +1,14 @@
+{
+  "id": "collision_vehicle",
+  "label": "Crash with another vehicle",
+  "description": "The other driver stopped and shared their details.",
+  "group": "Crash",
+  "coverage": "collision",
+  "sections": ["policy", "loss", "other_party", "vehicle", "driver", "damage", "witnesses", "documents", "declaration"],
+  "implied": {"cause": "Hit another vehicle", "other_vehicle": "Yes", "other_driver_left": "No"},
+  "reason_codes": ["MULTI_PARTY"],
+  "flags": [
+    {"if": {"field": "injuries", "in": ["Yes"]}, "code": "INJURY_REPORTED"}
+  ],
+  "loss_event_type": {"default": "MULTI_VEHICLE"}
+}

@@ -1,0 +1,35 @@
+[project]
+name = "evidence-server"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Julian-glitch-alt", email = "223622946+Julian-glitch-alt@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.43.121",
+    "cryptography>=50.0.2",
+    "fastapi>=0.160.0",
+    "fpdf2>=2.9.0",
+    "httpx>=0.28.1",
+    "openai>=3.41.0",
+    "pillow>=13.0.0",
+    "psycopg-pool>=3.3.3",
+    "psycopg[binary]>=3.3.6",
+    "python-multipart>=0.0.32",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+evidence-server = "evidence_server:main"
+
+[build-system]
+requires = ["uv_build>=0.12.6,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "modal>=1.6.3",
+    "pytest>=9.1.1",
+]

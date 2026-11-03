@@ -1,0 +1,86 @@
+"""Fixed vocabularies (overview decision 33). Values are stored as these exact strings."""
+
+SOURCES = {"REPORTED", "EXTRACTED", "INFERRED", "VERIFIED", "UNKNOWN"}
+
+LOSS_EVENT_TYPES = {
+    "SINGLE_VEHICLE_COLLISION",
+    "GLASS",
+    "WEATHER",
+    "VANDALISM",
+    "THEFT",
+    "MULTI_VEHICLE",
+    "INJURY",
+    "FIRE",
+    "ANIMAL",
+    "HIT_AND_RUN",
+    "HAIL",
+    "FLOOD",
+    "FALLING_OBJECT",
+    "THEFT_PARTS",
+}
+
+DAMAGE_TYPES = {
+    "BUMPER_DAMAGE",
+    "BODY_PANEL_DENT",
+    "SCRATCH_SCUFF",
+    "LIGHTING_DAMAGE",
+    "GLASS_DAMAGE",
+    "MIRROR_DAMAGE",
+    "WHEEL_TIRE_DAMAGE",
+    "HAIL_DENTS",
+    "WATER_DAMAGE",
+    "FIRE_DAMAGE",
+    "INTERIOR_DAMAGE",
+    "UNDERCARRIAGE_DAMAGE",
+}
+
+REASON_CODES = {
+    "POLICY_NOT_VERIFIED",
+    "POLICY_NOT_IN_FORCE",
+    "COVERAGE_NOT_FOUND",
+    "LOSS_DATE_NOT_PROVIDED",
+    "VIN_NOT_PROVIDED",
+    "DRIVER_NOT_LISTED",
+    "DRIVER_NOT_PROVIDED",
+    "COVERAGE_UNCLEAR",
+    "LOSS_TYPE_OUT_OF_PHOTO_LANE",
+    "MULTI_PARTY",
+    "INJURY_REPORTED",
+    "REQUIRED_EVIDENCE_MISSING",
+    "VIN_MISMATCH",
+    "PLATE_MISMATCH",
+    "PHOTO_UNCHECKED",
+    "PHOTO_WRONG_SUBJECT",
+    "PHOTO_UNREADABLE",
+    "PHOTO_READS_DISAGREE",
+    "PHOTO_POOR_QUALITY",
+    "VIN_READ_INVALID",
+    "ODOMETER_IMPLAUSIBLE",
+    "LICENSE_NAME_MISMATCH",
+    "LICENSE_EXPIRED",
+    "DAMAGE_NOT_VISIBLE",
+    "DAMAGE_PART_NOT_FOUND",
+    "DAMAGE_AREA_MISMATCH",
+    "DAMAGE_AREA_UNCLEAR",
+    "PRIOR_DAMAGE_SUSPECTED",
+    "DAMAGE_NOT_READ",
+    "DAMAGE_OUTSIDE_STATEMENT",
+    "STORY_INCONSISTENT",
+    "STORY_UNCLEAR",
+    "STORY_NOT_CHECKED",
+    "POSSIBLE_TOTAL_LOSS",
+    "POSSIBLE_DUPLICATE",
+    "SCREEN_RECAPTURE_SUSPECTED",
+    "RETAKE_AFTER_MISMATCH",
+    "ANSWER_CHANGED_AFTER_HINT",
+    "FNOL_MISMATCH",
+    "POLICE_REPORT_NEEDED",
+    "KEYS_MISSING",
+    "TYPE_DAMAGE_MISMATCH",
+    "TYPE_DAMAGE_NOT_SEEN",
+}
+
+DECISION_FIELDS = ("liability", "coverage_eligibility", "damage_severity", "payment_approval")
+
+# Facts that may only come from the policy snapshot, never from the claimant or a model.
+POLICY_ONLY_FACTS = {"coverage_type", "deductible_amount", "coverage_limit"}

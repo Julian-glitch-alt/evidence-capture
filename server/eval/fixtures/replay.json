@@ -1,0 +1,504 @@
+{
+  "_note": "Recorded fake model answers for labels.json (CI only).",
+  "photos": {
+    "p01": {
+      "reads": [
+        {
+          "is_plate": true,
+          "text": "DEMO101",
+          "state": "CA",
+          "unsure": false,
+          "problem": "none"
+        }
+      ]
+    },
+    "p02": {
+      "reads": [
+        {
+          "is_plate": true,
+          "text": "7ABCI23",
+          "state": "CA",
+          "unsure": false,
+          "problem": "none"
+        }
+      ]
+    },
+    "p03": {
+      "reads": [
+        {
+          "is_plate": true,
+          "text": null,
+          "state": null,
+          "unsure": true,
+          "problem": "blurry"
+        }
+      ]
+    },
+    "p04": {
+      "reads": [
+        {
+          "is_vin": true,
+          "vin": "1HGCV1F39LA526018",
+          "unsure": false,
+          "problem": "none"
+        },
+        {
+          "is_vin": true,
+          "characters": [
+            "1",
+            "H",
+            "G",
+            "C",
+            "V",
+            "1",
+            "F",
+            "3",
+            "9",
+            "L",
+            "A",
+            "5",
+            "2",
+            "6",
+            "0",
+            "1",
+            "8"
+          ],
+          "unsure": false,
+          "problem": "none"
+        }
+      ]
+    },
+    "p05": {
+      "reads": [
+        {
+          "is_vin": true,
+          "vin": "5YJ3E1EA8MA159083",
+          "unsure": false,
+          "problem": "none"
+        },
+        {
+          "is_vin": true,
+          "characters": [
+            "5",
+            "Y",
+            "J",
+            "3",
+            "E",
+            "1",
+            "E",
+            "A",
+            "8",
+            "M",
+            "A",
+            "1",
+            "5",
+            "9",
+            "0",
+            "8",
+            "3"
+          ],
+          "unsure": false,
+          "problem": "none"
+        }
+      ]
+    },
+    "p06": {
+      "reads": [
+        {
+          "is_vin": true,
+          "vin": "1HGCV1F39LA526018",
+          "unsure": false,
+          "problem": "none"
+        },
+        {
+          "is_vin": true,
+          "characters": [
+            "1",
+            "H",
+            "G",
+            "C",
+            "V",
+            "1",
+            "F",
+            "3",
+            "9",
+            "L",
+            "A",
+            "5",
+            "2",
+            "6",
+            "O",
+            "1",
+            "8"
+          ],
+          "unsure": false,
+          "problem": "none"
+        }
+      ]
+    },
+    "p07": {
+      "reads": [
+        {
+          "is_odometer": true,
+          "reading": 56947,
+          "unit": "mi",
+          "unsure": false,
+          "problem": "none"
+        }
+      ]
+    },
+    "p08": {
+      "reads": [
+        {
+          "is_odometer": true,
+          "reading": 412306,
+          "unit": "mi",
+          "unsure": false,
+          "problem": "none"
+        }
+      ]
+    },
+    "p09": {
+      "reads": [
+        {
+          "is_vehicle": true,
+          "damage_visible": true,
+          "parts": [
+            "Rear bumper"
+          ],
+          "unsure": false,
+          "problem": "none"
+        }
+      ],
+      "damage": {
+        "is_vehicle": true,
+        "damages": [
+          {
+            "area": "Rear bumper",
+            "damage_type": "BUMPER_DAMAGE",
+            "severity": "moderate",
+            "age": "new",
+            "box": [
+              200,
+              400,
+              700,
+              750
+            ],
+            "observed": "synthetic"
+          }
+        ],
+        "unsure": false
+      }
+    },
+    "p10": {
+      "reads": [
+        {
+          "is_vehicle": true,
+          "damage_visible": true,
+          "parts": [
+            "Rear bumper",
+            "Trunk or tailgate"
+          ],
+          "unsure": false,
+          "problem": "none"
+        }
+      ],
+      "damage": {
+        "is_vehicle": true,
+        "damages": [
+          {
+            "area": "Rear bumper",
+            "damage_type": "BUMPER_DAMAGE",
+            "severity": "severe",
+            "age": "new",
+            "box": [
+              200,
+              400,
+              700,
+              750
+            ],
+            "observed": "synthetic"
+          }
+        ],
+        "unsure": false
+      }
+    },
+    "p11": {
+      "reads": [
+        {
+          "is_vehicle": true,
+          "damage_visible": true,
+          "parts": [
+            "Front left"
+          ],
+          "unsure": false,
+          "problem": "none"
+        }
+      ],
+      "damage": {
+        "is_vehicle": true,
+        "damages": [
+          {
+            "area": "Front left",
+            "damage_type": "LIGHTING_DAMAGE",
+            "severity": "moderate",
+            "age": "new",
+            "box": [
+              200,
+              400,
+              700,
+              750
+            ],
+            "observed": "synthetic"
+          },
+          {
+            "area": "Front bumper",
+            "damage_type": "SCRATCH_SCUFF",
+            "severity": "minor",
+            "age": "old",
+            "box": [
+              200,
+              400,
+              700,
+              750
+            ],
+            "observed": "synthetic"
+          }
+        ],
+        "unsure": false
+      }
+    },
+    "p12": {
+      "reads": [
+        {
+          "is_vehicle": true,
+          "damage_visible": false,
+          "parts": [],
+          "unsure": false,
+          "problem": "none"
+        }
+      ],
+      "damage": {
+        "is_vehicle": true,
+        "damages": [],
+        "unsure": false
+      }
+    },
+    "p13": {
+      "reads": [
+        {
+          "is_vehicle": true,
+          "damage_visible": true,
+          "parts": [
+            "Left side"
+          ],
+          "unsure": false,
+          "problem": "none"
+        }
+      ],
+      "damage": {
+        "is_vehicle": true,
+        "damages": [
+          {
+            "area": "Left side",
+            "damage_type": "SCRATCH_SCUFF",
+            "severity": "minor",
+            "age": "unsure",
+            "box": [
+              200,
+              400,
+              700,
+              750
+            ],
+            "observed": "synthetic"
+          }
+        ],
+        "unsure": true
+      }
+    },
+    "p14": {
+      "reads": [
+        {
+          "is_vehicle": true,
+          "damage_visible": true,
+          "parts": [
+            "Right side"
+          ],
+          "unsure": false,
+          "problem": "none"
+        }
+      ],
+      "damage": {
+        "is_vehicle": true,
+        "damages": [
+          {
+            "area": "Right side",
+            "damage_type": "BODY_PANEL_DENT",
+            "severity": "moderate",
+            "age": "old",
+            "box": [
+              200,
+              400,
+              700,
+              750
+            ],
+            "observed": "synthetic"
+          }
+        ],
+        "unsure": false
+      }
+    },
+    "p15": {
+      "reads": [
+        {
+          "is_vehicle": true,
+          "damage_visible": true,
+          "parts": [
+            "Front bumper"
+          ],
+          "unsure": false,
+          "problem": "none"
+        }
+      ],
+      "damage": {
+        "is_vehicle": true,
+        "damages": [
+          {
+            "area": "Front bumper",
+            "damage_type": "WATER_DAMAGE",
+            "severity": "severe",
+            "age": "new",
+            "box": [
+              200,
+              400,
+              700,
+              750
+            ],
+            "observed": "synthetic"
+          }
+        ],
+        "unsure": false
+      }
+    },
+    "p16": {
+      "reads": [
+        {
+          "is_vehicle": true,
+          "damage_visible": true,
+          "parts": [
+            "Rear left"
+          ],
+          "unsure": false,
+          "problem": "none"
+        }
+      ]
+    }
+  },
+  "claims": {
+    "e2-01": {
+      "story": {
+        "impact_from_story": "rear",
+        "impact_from_damage": "rear",
+        "consistent": "yes",
+        "reasons": [
+          {
+            "text": "Backing into a bollard fits the rear bumper damage.",
+            "damages": [
+              1
+            ]
+          }
+        ]
+      }
+    },
+    "e2-02": {
+      "story": {
+        "impact_from_story": "front",
+        "impact_from_damage": "rear",
+        "consistent": "no",
+        "reasons": [
+          {
+            "text": "The story implies a front left impact; the damage is on the rear bumper.",
+            "damages": [
+              1
+            ]
+          }
+        ]
+      }
+    },
+    "e2-03": {
+      "story": {
+        "impact_from_story": "front",
+        "impact_from_damage": "front",
+        "consistent": "yes",
+        "reasons": [
+          {
+            "text": "A post at the front left corner fits the broken front left light.",
+            "damages": [
+              1
+            ]
+          }
+        ]
+      }
+    },
+    "e2-04": {
+      "story": {
+        "impact_from_story": "rear",
+        "impact_from_damage": "multiple",
+        "consistent": "yes",
+        "reasons": [
+          {
+            "text": "Backing into a bollard fits the rear bumper damage.",
+            "damages": [
+              1
+            ]
+          }
+        ]
+      }
+    },
+    "e2-05": {
+      "story": {
+        "impact_from_story": "rear",
+        "impact_from_damage": "rear",
+        "consistent": "unsure",
+        "reasons": [
+          {
+            "text": "A rolling shopping cart rarely causes severe bumper damage.",
+            "damages": [
+              1
+            ]
+          }
+        ]
+      }
+    },
+    "e2-06": {
+      "story": {
+        "impact_from_story": "front",
+        "impact_from_damage": "front",
+        "consistent": "yes",
+        "reasons": [
+          {
+            "text": "Driving through deep water fits the water damage at the front.",
+            "damages": [
+              1
+            ]
+          }
+        ]
+      }
+    },
+    "e2-07": {
+      "story": {
+        "impact_from_story": "rear",
+        "impact_from_damage": "front",
+        "consistent": "yes",
+        "reasons": [
+          {
+            "text": "A rear-end collision fits the damage.",
+            "damages": [
+              1
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

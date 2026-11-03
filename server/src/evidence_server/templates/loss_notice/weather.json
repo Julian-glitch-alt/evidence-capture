@@ -1,0 +1,23 @@
+{
+  "id": "weather",
+  "label": "Falling object, hail or flood",
+  "description": "A rock, a branch or a tree fell on the car, or hail, a flood or a storm damaged it.",
+  "group": "Damage while parked",
+  "coverage": "comprehensive",
+  "sections": ["policy", "loss", "details", "vehicle", "damage", "documents", "declaration"],
+  "implied": {"cause": "Weather", "other_vehicle": "No"},
+  "reason_codes": [],
+  "flags": [],
+  "loss_event_type": {"from_field": "weather_kind",
+                      "map": {"Hail": "HAIL", "Flood or high water": "FLOOD",
+                              "Fallen tree or branch": "FALLING_OBJECT",
+                              "A rock or other falling object": "FALLING_OBJECT",
+                              "Wind or another storm": "WEATHER"}},
+  "section_copy": {
+    "details": {"title": "About the weather"}
+  },
+  "slot_copy": {
+    "damage_closeup": {"title": "Damage close-up",
+                       "instructions": "Hail: one photo of each panel with dents (roof, hood, trunk). Flood: the water line inside the car."}
+  }
+}

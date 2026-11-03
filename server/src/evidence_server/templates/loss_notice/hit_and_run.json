@@ -1,0 +1,22 @@
+{
+  "id": "hit_and_run",
+  "label": "Hit and run",
+  "description": "Another vehicle hit yours and drove off, while you were driving or parked.",
+  "group": "Crash",
+  "coverage": "collision",
+  "sections": ["policy", "loss", "details", "other_party", "vehicle",
+               {"id": "driver", "show_if": {"field": "car_was", "in": ["Being driven"]}},
+               "damage", "witnesses", "documents", "declaration"],
+  "implied": {"cause": "Hit and run", "other_vehicle": "Yes", "other_driver_left": "Yes"},
+  "reason_codes": ["MULTI_PARTY"],
+  "flags": [
+    {"if": {"field": "injuries", "in": ["Yes"]}, "code": "INJURY_REPORTED"}
+  ],
+  "loss_event_type": {"default": "HIT_AND_RUN"},
+  "section_copy": {
+    "details": {"title": "About the other vehicle"}
+  },
+  "slot_copy": {
+    "documents": {"instructions": "Take a photo of the police report slip, if you have one."}
+  }
+}

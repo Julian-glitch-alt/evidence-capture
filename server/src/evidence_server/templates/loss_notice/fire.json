@@ -1,0 +1,18 @@
+{
+  "id": "fire",
+  "label": "Fire",
+  "description": "The car caught fire or was burned.",
+  "group": "Damage while parked",
+  "coverage": "comprehensive",
+  "sections": ["policy", "loss", "details", "vehicle", "damage", "witnesses", "documents", "declaration"],
+  "implied": {"cause": "Fire", "other_vehicle": "No"},
+  "reason_codes": [],
+  "flags": [],
+  "loss_event_type": {"default": "FIRE"},
+  "section_copy": {
+    "details": {"title": "About the fire"}
+  },
+  "slot_copy": {
+    "documents": {"instructions": "Take a photo of the fire department or police report, if you have one."}
+  }
+}
