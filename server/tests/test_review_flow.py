@@ -3,7 +3,7 @@
 import hashlib
 import json
 
-from conftest import GOOD_DAMAGE, GOOD_STORY
+from conftest import GOOD_DAMAGE, GOOD_STORY, JPEG
 from test_damage_flow import captured_claim, db_rows, send
 from test_decision_flow import decide
 from test_demo_insurer import API, new_claim, view, wired  # noqa: F401  (wired is a fixture)
@@ -106,7 +106,7 @@ def test_report_survives_a_failed_or_rejected_ai_summary(client, model, clock):
     d = detail(client, ready(client, clock))
     assert d["report"] is not None and d["ai_summary"]["status"] == "failed" and d["summary"]
     model.set("summary", {"sentences": [{"text": "Looks like fraud.", "refs": ["D1"]}]})
-    claim, _ = captured_claim(client, clock, photos={"damage_closeup": [b"\xff\xd8\xff\xe0other-1"], "damage_wide": [b"\xff\xd8\xff\xe0other-2"]})
+    claim, _ = captured_claim(client, clock, photos={"damage_closeup": [JPEG + b"other-1"], "damage_wide": [JPEG + b"other-2"]})
     d = detail(client, (send(client, claim), claim)[1])
     assert d["ai_summary"]["status"] == "rejected" and d["report"] is not None
 

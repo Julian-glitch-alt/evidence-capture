@@ -1,8 +1,9 @@
 """Adjuster accounts: email + password login, a signed session cookie, per-IP limit (T47).
 
 No global failure cap: it would let anyone lock adjusters out. The per-IP
-limit (5 failures in 15 minutes) lives in Postgres so every container enforces
-the same limit. Sessions are `adj_session` =
+limit (5 failures in 15 minutes) and the per-account limit (10 failures for
+one email in 1 hour, then 429 for that email) live in Postgres so every
+container enforces the same limits. Sessions are `adj_session` =
 `{user_id}.{session_version}.{expires}.{hmac}`; changing the role,
 deactivating, resetting, or the user changing their own password bumps
 `session_version`, which signs every other session out at once.
@@ -23,6 +24,8 @@ COOKIE = "adj_session"
 SESSION_SECONDS = 12 * 3600
 FAIL_WINDOW = 15 * 60
 FAILS_PER_IP = 5  # per client IP (Modal passes the real client address)
+EMAIL_FAIL_WINDOW = 60 * 60
+FAILS_PER_EMAIL = 10  # per account email in one hour, then 429 for that email
 
 #: While the user must choose a new password, every admin route answers 403
 #: except these three.
@@ -84,26 +87,34 @@ class AdminAuth:
         failed = False
         with self.db.tx() as conn:
             conn.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (ip,))
+            if email:
+                conn.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (f"email:{email}",))
             conn.execute(
-                "DELETE FROM login_failures WHERE ip = %s AND at <= %s",
-                (ip, now - FAIL_WINDOW),
+                "DELETE FROM login_failures WHERE at <= %s",
+                (now - EMAIL_FAIL_WINDOW,),
             )
             failures = conn.execute(
                 "SELECT COUNT(*) AS n FROM login_failures WHERE ip = %s AND at > %s",
                 (ip, now - FAIL_WINDOW),
             ).fetchone()
-            if failures["n"] >= FAILS_PER_IP:
+            email_failures = conn.execute(
+                "SELECT COUNT(*) AS n FROM login_failures WHERE email = %s AND at > %s",
+                (email, now - EMAIL_FAIL_WINDOW),
+            ).fetchone() if email else {"n": 0}
+            if failures["n"] >= FAILS_PER_IP or email_failures["n"] >= FAILS_PER_EMAIL:
                 limited = True
             else:
                 candidate = row["password_hash"] if row is not None else self._dummy_hash
                 password_ok = users_mod.verify_password(password, candidate)
                 if row is not None and row["active"] and password_ok:
-                    conn.execute("DELETE FROM login_failures WHERE ip = %s", (ip,))
+                    conn.execute("DELETE FROM login_failures WHERE ip = %s OR email = %s", (ip, email))
                 else:
-                    conn.execute("INSERT INTO login_failures (ip, at) VALUES (%s, %s)", (ip, now))
+                    conn.execute(
+                        "INSERT INTO login_failures (ip, at, email) VALUES (%s, %s, %s)",
+                        (ip, now, email or None))
                     failed = True
         if limited:
-            raise HTTPException(429, "Too many failed attempts. Try again in 15 minutes.")
+            raise HTTPException(429, "Too many failed attempts. Try again later.")
         if failed or row is None:
             raise HTTPException(401, "Wrong email or password")
         self.set_session(response, row["id"], row["session_version"])

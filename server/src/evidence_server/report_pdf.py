@@ -419,9 +419,9 @@ def seal_text(report: dict) -> str:
     when = _sealed_local(report)
     items = seal.get("items")
     try:
-        count = f"{int(items)} items captured live"
+        count = f"{int(items)} items captured in the capture flow"
     except (TypeError, ValueError):
-        count = f"{items} items captured live"
+        count = f"{items} items captured in the capture flow"
     parts = [f"SEALED {when}", count]
     if report_lib.vehicle_matches_policy(report):
         parts.append("VIN and plate photos match the policy")
@@ -1164,7 +1164,15 @@ def _photos(pdf: _Report, report: dict, images: dict[str, bytes]) -> None:
         pdf.set_xy(x, row_top + height_mm + 1)
         pdf.set_font("Helvetica", "", 9)
         pdf.set_text_color(*GREY_RGB)
-        pdf.multi_cell(cell, 4.5, _wrapped(photo.get("label")), new_x=XPos.LEFT, new_y=YPos.NEXT)
+        flags = photo.get("flags") or []
+        flag_notes = []
+        if "static_source" in flags:
+            flag_notes.append("static source (liveness frames missing or near-identical)")
+        if "slow_upload" in flags:
+            flag_notes.append("slow upload (more than 60 s after the capture code)")
+        caption = (f"{photo.get('label')} — flagged: {'; '.join(flag_notes)}"
+                   if flag_notes else photo.get("label"))
+        pdf.multi_cell(cell, 4.5, _wrapped(caption), new_x=XPos.LEFT, new_y=YPos.NEXT)
         if any(d.get("item_id") == photo.get("item_id") and d.get("box") for d in damages):
             pdf.set_x(x)
             pdf.set_font("Helvetica", "", 8)
@@ -1229,4 +1237,5 @@ def _seal(pdf: _Report, report: dict) -> None:
     tail = f"  ·  Event-log head {_short(head)}" if head else ""
     pdf.multi_cell(0, 5, _wrapped(f"Items sealed: {items}{tail}"),
                    new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    _p(pdf, "Anyone can verify the sealed package at /verify.", grey=True)
+    _p(pdf, "Captured in the capture flow and sealed. Anyone can verify the sealed package at /verify, "
+            "or offline with tools/verify_package.py.", grey=True)

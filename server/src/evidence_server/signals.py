@@ -16,7 +16,8 @@ from . import photo_check
 from .coverage import _needed_coverage
 
 VERSION = "signals/v1"
-CHECK_ORDER = ("capture.retake_trail", "capture.hint_edits", "capture.screen", "fnol.statement")
+CHECK_ORDER = ("capture.retake_trail", "capture.hint_edits", "capture.screen", "fnol.statement",
+               "static_source", "slow_upload")
 
 # Retake reasons that say the shot showed something else than the claim, not a bad photo.
 MISMATCH_CODES = {"PLATE_MISMATCH", "VIN_MISMATCH", "LICENSE_NAME_MISMATCH", "DAMAGE_AREA_MISMATCH"}
@@ -27,14 +28,56 @@ SLOT_WORDS = {
 }
 
 
-def rows(photo_rows: list[dict], ctx: dict, events: list[dict], answers: dict) -> list[dict]:
+def rows(photo_rows: list[dict], ctx: dict, events: list[dict], answers: dict,
+         items: list[dict] | None = None) -> list[dict]:
     """Every signal's rows in CHECK_ORDER.
     photo_rows / ctx: exactly what photo_check.view takes (superseded shots included);
-    events: the claim's log; answers: the submitted form."""
+    events: the claim's log; answers: the submitted form; items: item publics
+    with server facts (liveness and nonce latency), when available."""
     opened = next((e for e in events or [] if e.get("type") == "claim.opened"), None)
     out = [retake_trail(photo_rows, ctx), hint_edits(events), screen(photo_rows),
-           fnol(((opened or {}).get("data") or {}).get("loss"), answers)]
+           fnol(((opened or {}).get("data") or {}).get("loss"), answers),
+           static_source(items), slow_upload(items)]
     return [r for r in out if r is not None]
+
+
+def static_source(items: list[dict] | None) -> dict | None:
+    """Photos flagged as a possible static source (liveness frames missing or
+    near-identical). A flag for the adjuster, never a block."""
+    flagged = [i for i in items or [] if not i.get("superseded") and "static_source" in (i.get("flags") or [])]
+    if not flagged:
+        return None
+    reasons = []
+    for i in flagged:
+        liveness = i.get("liveness")
+        if not isinstance(liveness, dict):
+            liveness = (i.get("server_facts") or {}).get("liveness")
+        reason = liveness.get("reason") if isinstance(liveness, dict) else None
+        if reason and reason not in reasons:
+            reasons.append(reason)
+    reason_text = reasons[0] if reasons else "Liveness frames suggest a static source."
+    n = len(flagged)
+    return _row(
+        "static_source", "unclear", "STATIC_SOURCE",
+        f"{n} photo{'s' if n > 1 else ''} flagged as a possible static source: {reason_text}",
+        {"evidence": [{"item_id": i.get("id"), "slot_id": i.get("step_id")} for i in flagged]},
+        {"photo.static_source": n},
+    )
+
+
+def slow_upload(items: list[dict] | None) -> dict | None:
+    """Photos whose nonce-to-upload latency exceeded 60 seconds."""
+    flagged = [i for i in items or [] if not i.get("superseded") and "slow_upload" in (i.get("flags") or [])]
+    if not flagged:
+        return None
+    n = len(flagged)
+    return _row(
+        "slow_upload", "unclear", "SLOW_UPLOAD",
+        f"{n} photo{'s' if n > 1 else ''} arrived more than 60 seconds after the capture code was issued.",
+        {"evidence": [{"item_id": i.get("id"), "slot_id": i.get("step_id")} for i in flagged],
+         "latencies": [i.get("nonce_to_upload_latency_seconds") for i in flagged]},
+        {"photo.slow_upload": n},
+    )
 
 
 # --- 4. coaching trail ---

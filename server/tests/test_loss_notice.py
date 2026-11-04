@@ -5,13 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from conftest import JPEG, MP4, Phone
+from conftest import JPEG, MP4, PNG, Phone
 
 OVERLAYS = sorted(
     p.stem for p in (Path(__file__).parents[1] / "src/evidence_server/templates/loss_notice").glob("*.json") if p.stem != "base"
 )
 
-MEDIA = {"video": (MP4, "video/mp4"), "signature": (b"\x89PNG\r\n\x1a\nsig", "image/png")}
+MEDIA = {"video": (MP4, "video/mp4"), "signature": (PNG, "image/png")}
 VALID_VIN = "1HGCV1F39LA526018"  # DEMO-AUTO-1001's vehicle
 
 DAMAGE_ANSWERS = {

@@ -63,8 +63,8 @@ export default function Privacy() {
             </p>
             <p>Your IP address is kept for a short time to stop abuse.</p>
             <p>
-              We do not collect your location. This page cannot use GPS. You cannot upload photos from your
-              gallery: photos are taken live in this page.
+              We do not collect your location. This page cannot use GPS. The capture page only offers the
+              camera in this page; there is no option to pick photos from your gallery.
             </p>
           </section>
 

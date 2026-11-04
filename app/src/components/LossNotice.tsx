@@ -172,9 +172,17 @@ export default function LossNotice({
                   (damagesByItem.get(item.id) ?? []).some(
                     (a) => normalizeArea(a) === normalizeArea(selectedArea),
                   )
+                const itemFlags = item.flags ?? []
+                const flagNotes: string[] = []
+                if (itemFlags.includes('static_source')) flagNotes.push('static source — liveness frames missing or near-identical')
+                if (itemFlags.includes('slow_upload')) flagNotes.push('slow upload — arrived more than 60 s after the capture code was issued')
                 const caption = (
                   <figcaption>
-                    Figure {i + 1}. {title}, captured live at {captionWhen(item.received_at, claim.submitted_at)}.
+                    {flagNotes.length > 0 ? (
+                      <>Figure {i + 1}. {title} — flagged: {flagNotes.join('; ')}.</>
+                    ) : (
+                      <>Figure {i + 1}. {title}, captured in the capture flow at {captionWhen(item.received_at, claim.submitted_at)}.</>
+                    )}
                     {pin && (
                       <sup className={`ev-cref ${pin.level === 'review' ? 'review' : pin.level === 'note' ? 'note' : ''}`}>
                         {pin.n}

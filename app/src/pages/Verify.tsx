@@ -295,7 +295,7 @@ export default function Verify() {
                 </p>
                 <p className="ev-wdecl" style={{ marginTop: 8 }}>
                   It does not prove that a photo shows what it claims to show. It proves these are the exact files the
-                  customer&apos;s phone sent through the live capture page.
+                  customer&apos;s phone sent through the capture flow in this page. Captured in the capture flow and sealed.
                 </p>
               </section>
               <section className="ev-wsec">

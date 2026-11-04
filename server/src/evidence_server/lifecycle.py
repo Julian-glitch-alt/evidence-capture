@@ -119,6 +119,22 @@ def events(db: psycopg.Connection, claim_id: str) -> list[dict]:
     return [_event_public(r) for r in rows]
 
 
+def events_jsonl(event_list: list[dict]) -> bytes:
+    """All claim events as JSON Lines (seq, prev_hash and hash included),
+    one canonical JSON object per line, in seq order."""
+    return "".join(canonical(e) + "\n" for e in event_list).encode()
+
+
+def verify_event_list(event_list: list[dict]) -> dict:
+    """Recompute the chain over an in-memory event list (no database)."""
+    prev = GENESIS
+    for i, event in enumerate(event_list, start=1):
+        if event.get("seq") != i or event.get("prev_hash") != prev or _event_hash(event) != event.get("hash"):
+            return {"ok": False, "broken_at": i, "head": prev, "count": len(event_list)}
+        prev = event["hash"]
+    return {"ok": True, "broken_at": None, "head": prev, "count": len(event_list)}
+
+
 def verify_chain(db: psycopg.Connection, claim_id: str) -> dict:
     """Recompute every hash, and check the claim's status is the one the log ends in.
 

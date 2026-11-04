@@ -36,6 +36,8 @@
     "prior_damage": {"conflict": 0.3, "review": 0.2, "source": "assumed", "rationale": "Model-only: the damage reading calls some damage old. Capped with the other model-only causes."},
     "story": {"conflict": 0.3, "review": 0.15, "source": "assumed", "rationale": "Model-only: statement and damage do not fit. Capped with the other model-only causes."},
     "screen_recapture": {"conflict": 0.3, "review": 0.3, "source": "assumed", "rationale": "Model-only: a photo may show a screen or a print. Capped with the other model-only causes."},
+    "static_source": {"conflict": 0.3, "review": 0.2, "source": "assumed", "rationale": "Code-only: liveness frames missing or near-identical to the shot, which suggests a static source; a live scene can also be still, so weak."},
+    "slow_upload": {"conflict": 0.2, "review": 0.1, "source": "assumed", "rationale": "Code-only: the file arrived over 60 s after its capture nonce was issued; slow networks are a common honest cause, so weak."},
     "evidence_missing": {"conflict": 0.3, "review": 0.3, "source": "assumed", "rationale": "The claimant skipped a required photo or video: a behaviour, not a failed check."},
     "coaching": {"conflict": 0.5, "review": 0.4, "source": "assumed", "rationale": "Retakes or form edits after a mismatch hint, found by code from the capture log."},
     "fnol_statement": {"conflict": 0.4, "review": 0.3, "source": "assumed", "rationale": "The story changed between first notice and the statement."},

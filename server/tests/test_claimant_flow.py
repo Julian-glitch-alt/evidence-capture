@@ -2,10 +2,8 @@
 
 import pytest
 
-from conftest import JPEG, Phone
+from conftest import JPEG, PNG, Phone
 from test_loss_notice import DAMAGE_ANSWERS, capture_required, detail, open_claim, save
-
-PNG = b"\x89PNG\r\n\x1a\nfake-signature"
 
 
 def test_policy_is_on_the_first_screen_before_any_choice(client):

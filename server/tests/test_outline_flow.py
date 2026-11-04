@@ -33,6 +33,13 @@ def reading(*damages):
 def claim_with_photo(client, clock, model, *damages, photo=PHOTO):
     model.set("damage", reading(*(damages or (HOLE_DAMAGE,))))
     claim, items = captured_claim(client, clock, {"damage_closeup": [photo], "damage_wide": [JPEG + b"-wide"]})
+    # Uploads must now decode, so the wide photo is corrupted after capture:
+    # its outline path is the stored file that no longer opens as an image.
+    store = client.app.state.store
+    wide_id = items["damage_wide"][0]["id"]
+    with store.db.tx() as conn:
+        path = conn.execute("SELECT path FROM items WHERE id=%s", (wide_id,)).fetchone()["path"]
+    store.blobs.put(path, b"not-an-image", "image/jpeg")
     return claim, items
 
 

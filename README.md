@@ -1,6 +1,6 @@
 # Verified photo evidence for auto insurance claims
 
-Insurers send the claimant a link; every photo is captured live in the phone's browser and checked against the policy and the claimant's story before it can be used, then sealed and returned as a report the adjuster decides on.
+Insurers send the claimant a link; every photo is captured in the phone's browser through the capture flow and checked against the policy and the claimant's story before it can be used, then sealed and returned as a report the adjuster decides on.
 The adjuster keeps working in the claims system; this product delivers the verified evidence there.
 
 > **Built with Meta AI.** At runtime, Muse Spark reads every photo and statement and SAM 3.1 outlines the damage (see [Meta models](#meta-models)). The code was written by a solo developer working with AI coding agents: **Muse Code** (Meta) and **Claude Code** (Anthropic). Live demo: https://phamdinhluu0712--evidence-capture.us-east.modal.run
@@ -9,20 +9,20 @@ The adjuster keeps working in the claims system; this product delivers the verif
 
 - In a 2026 Verisk survey (a vendor survey), 36% of US consumers said they would consider editing a claim photo or document (55% of Gen Z); 99% of claims staff have seen altered or AI-made documents, yet only 32% of carriers feel confident detecting them.
 - UK insurers Allianz and Zurich reported a 300% rise in app-edited vehicle photos in 2024.
-- The industry asks "is this photo fake?", a race detectors keep losing as editing tools improve. The question with a lasting answer is: was this photo taken live, of this car, matching this policy and this story?
+- The industry asks "is this photo fake?", a race detectors keep losing as editing tools improve. The question with a lasting answer is: was this photo taken in the capture flow, of this car, matching this policy and this story?
 - Bad or missing photos are also the main delay in photo claims: chasing the claimant, retakes, and sending someone out to inspect.
 
 ## What it does
 
 1. The insurer opens the claim in its own system and orders a verified capture, through the API or a short console form.
-2. The claimant gets the link (the insurer sends it by text or email; the console also shows a QR code and a copy button) and captures in the phone's browser. They say what happened in their own words and confirm the claim type the model suggests, or pick it from a list. Photos come only from the live camera; there is no gallery button.
+2. The claimant gets the link (the insurer sends it by text or email; the console also shows a QR code and a copy button) and captures in the phone's browser. They say what happened in their own words and confirm the claim type the model suggests, or pick it from a list. The capture page only offers the live camera; direct API uploads are flagged, and a native app closes this gap.
 3. While capturing, each photo is read and code-checked: the VIN (read twice, check digit, matched to the policy), the plate and odometer against the policy, blur and glare, and whether the photo shows the declared damage. A failed check asks for a retake on the spot.
-4. The package is sealed (Ed25519 signature with a hash-chained event log anyone can verify). In the background the service reads the damage, compares the statement with the photos, flags old damage, and proposes a lane with an initial reserve.
+4. The package is sealed (Ed25519 signature with a hash-chained event log anyone can verify offline with `tools/verify_package.py`; see also `server/tools/verify_package.py`). In the background the service reads the damage, compares the statement with the photos, flags old damage, and proposes a lane with an initial reserve.
 5. The result lands in the claim file: the report PDF and sealed package under Documents, a 2–3 line note under Notes, and a "Review verified evidence, due in 2 business days" activity. After the adjuster decides, the decision is written back as a note.
 
 ```mermaid
 flowchart LR
-    A[Insurer orders capture] --> B[Claimant link: live capture + photo checks]
+    A[Insurer orders capture] --> B[Claimant link: capture in this page + photo checks]
     B --> C[Seal: signature + hash-chained log]
     C --> D[Analysis: damage, statement, flags, lane]
     D --> E[Report and decision]
@@ -33,7 +33,7 @@ The insurer's system stays the system of record: this product recommends, the ad
 
 ## Why it is different
 
-We do not ask "is this photo fake?". We ask "was it taken live, of this car, matching this policy and this story?".
+We do not ask "is this photo fake?". We ask "was it taken in the capture flow, of this car, matching this policy and this story?".
 
 - The AI proposes: it reads photos, points at damage, and raises flags, each with the photo and the reason attached.
 - Code and humans decide: check digits, policy matching, and totals are re-checked by code, and the adjuster makes the call.
@@ -100,9 +100,9 @@ Full report: [server/eval/e1-report-2026-11-03.md](server/eval/e1-report-2026-11
 
 | Part | What it is |
 | --- | --- |
-| Claimant link | Guided capture in the phone browser, live camera only, no gallery button. |
+| Claimant link | Guided capture in the phone browser, camera in this page only, no gallery button. |
 | Checks before signing | Each photo is read and code-checked during capture; a failed check asks for a retake, and a required photo that still fails or is skipped (with a reason) is flagged for the adjuster. |
-| Sealed package | Ed25519 signature plus a hash-chained event log; anyone holding the package can verify it. |
+| Sealed package | Ed25519 signature plus a hash-chained event log (`events.jsonl` in the zip); anyone holding the package can verify it offline with `tools/verify_package.py`. |
 | Review desk | Queue, claim view with the pipeline, findings with evidence, decisions, and reviewer feedback labels. |
 | Report PDF | A verified-evidence report with the sealed package, per claim. |
 | Signed webhooks | Evidence and decision events pushed to the insurer's system. |
@@ -112,6 +112,8 @@ Full report: [server/eval/e1-report-2026-11-03.md](server/eval/e1-report-2026-11
 ## What is not built
 
 - No native app, so a virtual camera is not blocked. The link raises the cost of fakes; the full fix needs an app.
+- Direct API uploads can bypass the capture page: the server flags them (missing or static liveness frames, slow nonce-to-upload latency), but closing the gap needs a native app with App Attest / Play Integrity or C2PA provenance.
+- The seal is server-attested: the server signs what it received, with no third-party timestamp yet, so it does not prove when a photo was taken to an outside party.
 - Screen re-capture is the model's opinion, not a pixel test. Pixel-level forensics were dropped on purpose.
 - One workspace is shared by all trial users, who can see each other's claims.
 - No shared photo pool across insurers.

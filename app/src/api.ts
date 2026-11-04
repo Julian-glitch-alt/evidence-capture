@@ -96,6 +96,13 @@ export interface Item {
   client_meta: Record<string, unknown>
   removed_at?: string | null
   removed_reason?: string | null
+  flags?: string[]
+  static_source?: string | null
+  slow_upload?: boolean
+  nonce_to_upload_latency_seconds?: number | null
+  server_facts?: Record<string, unknown>
+  facts?: Record<string, unknown>
+  liveness?: { status?: string; reason?: string | null } | null
 }
 
 export interface PhotoCheck {
@@ -651,6 +658,8 @@ export interface UploadProgress {
 export interface UploadOptions {
   onProgress?: (p: UploadProgress) => void
   signal?: AbortSignal
+  frameBefore?: Blob | null
+  frameAfter?: Blob | null
 }
 
 /** True when the capture session behind this error is gone (superseded or expired). */
@@ -896,6 +905,8 @@ export const api = {
         body.append('nonce', nonce)
         body.append('client_meta', JSON.stringify(meta))
         body.append('file', blob, `${slotId}.${ext}`)
+        if (options?.frameBefore) body.append('frame_before', options.frameBefore, 'frame_before.jpg')
+        if (options?.frameAfter) body.append('frame_after', options.frameAfter, 'frame_after.jpg')
         const xhr = new XMLHttpRequest()
         const signal = options?.signal
         let settled = false

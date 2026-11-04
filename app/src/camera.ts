@@ -68,9 +68,25 @@ export function useCamera() {
     }
   }, [])
 
-  const takePhoto = useCallback(async (): Promise<{ blob: Blob; meta: Record<string, unknown>; quality: Quality | null }> => {
+  const grabFrame = useCallback(async (): Promise<Blob | null> => {
+    const video = videoRef.current
+    if (!video || !video.videoWidth) return null
+    const width = 160
+    const height = Math.max(1, Math.round((width * video.videoHeight) / video.videoWidth))
+    const frameCanvas = document.createElement('canvas')
+    frameCanvas.width = width
+    frameCanvas.height = height
+    frameCanvas.getContext('2d')!.drawImage(video, 0, 0, width, height)
+    return new Promise<Blob | null>((resolve) =>
+      frameCanvas.toBlob((b) => resolve(b), 'image/jpeg', 0.7),
+    )
+  }, [])
+
+  const takePhoto = useCallback(async (): Promise<{ blob: Blob; meta: Record<string, unknown>; quality: Quality | null; frameBefore: Blob | null; frameAfter: Blob | null }> => {
     const video = videoRef.current
     if (!video || !video.videoWidth) throw new Error('Camera is not ready yet')
+    const frameBefore = await grabFrame()
+    await new Promise((r) => setTimeout(r, 300))
     const canvas = document.createElement('canvas')
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
@@ -84,8 +100,10 @@ export function useCamera() {
     const blob = await new Promise<Blob>((resolve, reject) =>
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not capture photo'))), 'image/jpeg', 0.9),
     )
-    return { blob, meta: { ...trackInfo(), captured_at: new Date().toISOString() }, quality }
-  }, [trackInfo])
+    await new Promise((r) => setTimeout(r, 300))
+    const frameAfter = await grabFrame()
+    return { blob, meta: { ...trackInfo(), captured_at: new Date().toISOString() }, quality, frameBefore, frameAfter }
+  }, [trackInfo, grabFrame])
 
   const recordVideo = useCallback(
     (maxSeconds: number, onTick: (seconds: number) => void) => {

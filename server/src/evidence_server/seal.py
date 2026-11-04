@@ -28,10 +28,13 @@ README = """This package was sealed by the claims server when the claim was subm
 
 manifest.json lists every file with its SHA-256, plus the hash of answers.json and
 policy_snapshot.json. signature.txt is an Ed25519 signature over manifest.json made
-with the key in public_key.txt. Upload this zip to the Verify page to check it.
+with the key in public_key.txt. events.jsonl holds every claim event with its
+seq, prev_hash and hash; its head and count are in the manifest. Upload this zip
+to the Verify page to check it, or verify offline with tools/verify_package.py.
 
-A valid seal proves the files are the ones the server received. It does not prove
-that a photo shows what it claims to show.
+Captured in the capture flow and sealed: a valid seal proves the files are the
+ones the server received. It does not prove that a photo shows what it claims
+to show.
 """
 MAX_ENTRIES = 500  # a claim has a few dozen files at most
 MAX_UNPACKED_BYTES = 250 * 1024 * 1024  # the upload cap (200 MB) plus room for stored-zip overhead
@@ -56,6 +59,46 @@ def invalid(problem: str) -> dict:
             "removed": 0, "removed_at": None, "removed_reason": None, "problems": [problem]}
 
 
+GENESIS = "0" * 64
+
+
+def key_id_for(public_raw: bytes) -> str:
+    return hashlib.sha256(public_raw).hexdigest()[:16]
+
+
+def _event_hash(event: dict) -> str:
+    body = {k: v for k, v in event.items() if k not in ("id", "hash")}
+    return hashlib.sha256(canonical(body).encode()).hexdigest()
+
+
+def verify_event_chain(events: list) -> tuple[str, str | None]:
+    """Recompute the chain; -> (head, problem or None)."""
+    prev = GENESIS
+    for i, event in enumerate(events, start=1):
+        if not isinstance(event, dict):
+            return prev, f"events.jsonl entry {i} is not an event record."
+        if event.get("seq") != i:
+            return prev, f"events.jsonl chain is broken at entry {i}: seq is out of order."
+        if event.get("prev_hash") != prev:
+            return prev, f"events.jsonl chain is broken at seq {i}: prev_hash does not match."
+        if _event_hash(event) != event.get("hash"):
+            return prev, f"events.jsonl chain is broken at seq {i}: hash does not match."
+        prev = event["hash"]
+    return prev, None
+
+
+def parse_events_jsonl(data: bytes) -> tuple[list, str | None]:
+    events = []
+    for line in data.decode("utf-8", errors="replace").splitlines():
+        if not line.strip():
+            continue
+        try:
+            events.append(json.loads(line))
+        except ValueError:
+            return [], "events.jsonl is not readable."
+    return events, None
+
+
 class Sealer:
     def __init__(self, private_key: Ed25519PrivateKey):
         self.key = private_key
@@ -78,6 +121,30 @@ class Sealer:
     @property
     def public_key_b64(self) -> str:
         return base64.b64encode(self.public_raw).decode()
+
+    def known_public_keys(self) -> dict[str, bytes]:
+        """key_id -> raw public key: the current key plus SEAL_OLD_PUBLIC_KEYS
+        (comma-separated base64), so rotation does not break old packages."""
+        keys = {self.key_id: self.public_raw}
+        for part in os.environ.get("SEAL_OLD_PUBLIC_KEYS", "").split(","):
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                raw = base64.b64decode(part, validate=True)
+            except ValueError:
+                continue
+            if len(raw) == 32:
+                keys[key_id_for(raw)] = raw
+        return keys
+
+    def verify_key_for(self, manifest: dict) -> bytes | None:
+        """The key named by manifest.key_id from the known set, or None."""
+        kid = manifest.get("key_id") if isinstance(manifest, dict) else None
+        keys = self.known_public_keys()
+        if isinstance(kid, str) and kid:
+            return keys.get(kid)
+        return self.public_raw
 
     def sign(self, manifest: dict) -> tuple[bytes, str]:
         body = canonical(manifest).encode()
@@ -117,16 +184,44 @@ class Sealer:
         if not isinstance(manifest, dict) or not isinstance(manifest.get("items", []), list):
             return invalid("manifest.json is not a sealed claim manifest.")
 
+        verify_key = self.verify_key_for(manifest)
+        if verify_key is None:
+            problems.append(
+                f"Signed with an unknown sealing key (key_id {manifest.get('key_id')}); "
+                "it is not in this server's key set.")
         package_key = files.get("public_key.txt", b"").strip()
         try:
-            if package_key and base64.b64decode(package_key, validate=True) != self.public_raw:
+            if package_key and verify_key is not None and base64.b64decode(package_key, validate=True) != verify_key:
                 problems.append("Signed with a different key than this server's sealing key.")
         except ValueError:
             problems.append("public_key.txt is not a valid key.")
-        try:
-            Ed25519PublicKey.from_public_bytes(self.public_raw).verify(base64.b64decode(files["signature.txt"].strip()), manifest_bytes)
-        except (InvalidSignature, ValueError):
-            problems.append("The manifest was changed after sealing, or the signature does not match it.")
+        if verify_key is not None:
+            try:
+                Ed25519PublicKey.from_public_bytes(verify_key).verify(base64.b64decode(files["signature.txt"].strip()), manifest_bytes)
+            except (InvalidSignature, ValueError):
+                problems.append("The manifest was changed after sealing, or the signature does not match it.")
+
+        # The verifiable event log inside the package.
+        if "events.jsonl" not in digests:
+            problems.append("events.jsonl is missing from the package.")
+        else:
+            try:
+                events_bytes = z.read("events.jsonl")
+            except (zipfile.BadZipFile, ValueError, zlib.error, EOFError, KeyError):
+                events_bytes = b""
+                problems.append("events.jsonl is not readable.")
+            if events_bytes or "events.jsonl" in digests:
+                event_list, parse_problem = parse_events_jsonl(events_bytes)
+                if parse_problem:
+                    problems.append(parse_problem)
+                else:
+                    head, chain_problem = verify_event_chain(event_list)
+                    if chain_problem:
+                        problems.append(chain_problem)
+                    if head != manifest.get("event_chain_head"):
+                        problems.append("events.jsonl head does not match manifest.event_chain_head.")
+                    if len(event_list) != manifest.get("event_count"):
+                        problems.append("events.jsonl count does not match manifest.event_count.")
 
         by_name = {i.filename: i for i in entries}
         removed = 0
@@ -144,8 +239,18 @@ class Sealer:
                     raise ValueError("receipt too large")
                 removal_bytes = z.read("removal.json")
                 removal_sig = z.read("removal.sig")
-                Ed25519PublicKey.from_public_bytes(self.public_raw).verify(
-                    base64.b64decode(removal_sig.strip()), removal_bytes)
+                receipt_keys = [k for k in (verify_key, self.public_raw) if k is not None]
+                receipt_ok = False
+                for candidate in dict.fromkeys(receipt_keys):
+                    try:
+                        Ed25519PublicKey.from_public_bytes(candidate).verify(
+                            base64.b64decode(removal_sig.strip()), removal_bytes)
+                        receipt_ok = True
+                        break
+                    except (InvalidSignature, ValueError):
+                        continue
+                if not receipt_ok:
+                    raise ValueError("receipt signature")
                 receipt = json.loads(removal_bytes)
                 if not isinstance(receipt, dict) or receipt.get("claim_id") != manifest.get("claim_id"):
                     raise ValueError("receipt claim mismatch")
@@ -234,7 +339,8 @@ def build_manifest(claim, snapshot, items, answers_json: str, sessions: list[str
 
 
 def build_package(manifest_bytes: bytes, signature: str, public_key_b64: str, answers_json: str, snapshot_json: str, files: dict[str, bytes],
-                  removal_json: bytes | None = None, removal_sig: str | None = None) -> bytes:
+                  removal_json: bytes | None = None, removal_sig: str | None = None,
+                  events_jsonl: bytes | str | None = None) -> bytes:
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as z:
         z.writestr("manifest.json", manifest_bytes)
@@ -243,6 +349,8 @@ def build_package(manifest_bytes: bytes, signature: str, public_key_b64: str, an
         z.writestr("answers.json", answers_json)
         z.writestr("policy_snapshot.json", snapshot_json)
         z.writestr("README.txt", README)
+        if events_jsonl is not None:
+            z.writestr("events.jsonl", events_jsonl.encode() if isinstance(events_jsonl, str) else events_jsonl)
         for name, data in files.items():
             z.writestr(name, data)
         if removal_json is not None and removal_sig is not None:

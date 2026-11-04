@@ -360,7 +360,7 @@ export default function ClaimList() {
             <h2>Try it in 3 steps</h2>
             <ol className="mute" style={{ margin: 0, paddingLeft: 20, display: 'grid', gap: 6, fontSize: 13, listStyle: 'decimal' }}>
               <li>New capture link → Open a claim, with your car&apos;s VIN and plate.</li>
-              <li>Scan the QR code with your phone, answer the questions and take the photos live.</li>
+              <li>Scan the QR code with your phone, answer the questions and take the photos in the capture page.</li>
               <li>
                 Come back here about a minute after sending: open the claim to read the review and the report,
                 then decide.

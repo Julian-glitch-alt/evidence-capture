@@ -271,7 +271,7 @@ function Intro({
         <div className="t45-col items-center justify-center gap-5 p-6 text-center">
           <p className="text-sm font-semibold">{brandName}</p>
           <h1 className="t45-q">Continue on your phone</h1>
-          <p className="t45-help">Photos must be taken live with a phone camera. Scan this code with your phone to continue.</p>
+          <p className="t45-help">Photos must be taken with a phone camera in this page. Scan this code with your phone to continue.</p>
           <Qr value={window.location.href} size={220} />
           <button className="text-sm underline" onClick={() => setDesktop(false)}>
             Continue on this device anyway
@@ -303,7 +303,7 @@ function Intro({
               </div>
               <ul className="list-disc space-y-2 pl-5 text-[15px]">
                 <li>About 5 minutes. Your answers save as you go, and this link works until the claim is sent.</li>
-                <li>Photos and video are taken live in this page. Existing photos cannot be uploaded.</li>
+                <li>Photos and video are taken with the camera in this page; there is no option to pick existing photos.</li>
                 <li>Everything you send is sealed when it reaches us, so nobody can change it later.</li>
               </ul>
             </>
@@ -987,7 +987,7 @@ function CaptureFlow({
       {screen.kind === 'photos' && (
         <>
           <h1 className="t45-q">Photos</h1>
-          <p className="t45-help">Take each one live with this phone. If you can't take one, say why and continue.</p>
+          <p className="t45-help">Take each one with this phone in this page. If you can't take one, say why and continue.</p>
           <div className="rounded-[10px] border border-[var(--line)] bg-white p-3 text-sm text-[var(--text)]">
             <span className="mr-2 inline-block rounded-md bg-[var(--brand)] px-2.5 py-1 text-xs font-bold text-white">
               Session {session.code}
@@ -1173,7 +1173,7 @@ function checks(layout: SessionState['layout'], answers: Answers, photoSections:
   if (slots.length) {
     const taken = slots.filter((x) => x.count > 0).length
     const skipped = slots.filter((x) => x.count === 0 && x.skipped)
-    out.push({ ok: taken === slots.length, text: `${taken} of ${slots.length} required photos and video taken live` })
+    out.push({ ok: taken === slots.length, text: `${taken} of ${slots.length} required photos and video taken in this page` })
     skipped.forEach((x) => out.push({ ok: false, text: `${x.title} not taken: ${x.skipped!.reason}` }))
   }
   return out

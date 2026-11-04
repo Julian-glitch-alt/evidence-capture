@@ -6,7 +6,7 @@ import FrameGuide from './FrameGuide'
 import { guideLine } from './frameGuides'
 
 type Camera = ReturnType<typeof useCamera>
-type Shot = { blob: Blob; url: string; meta: Record<string, unknown>; quality?: Quality; problem?: QualityProblem | null; fails?: number }
+type Shot = { blob: Blob; url: string; meta: Record<string, unknown>; quality?: Quality; problem?: QualityProblem | null; fails?: number; frameBefore?: Blob | null; frameAfter?: Blob | null }
 
 const NONCE_REFRESH_MS = 150_000 // nonces live 3 minutes on the server
 
@@ -77,10 +77,10 @@ export default function CameraScreen({ token, sessionId, sessionCode, slot, came
     setError(undefined)
     try {
       if (slot.kind === 'photo') {
-        const { blob, meta, quality } = await camera.takePhoto()
+        const { blob, meta, quality, frameBefore, frameAfter } = await camera.takePhoto()
         const problem = thresholds && quality ? judge(quality, thresholds) : null
         if (problem) onQualityFail()
-        setShot({ blob, meta, url: URL.createObjectURL(blob), quality: quality ?? undefined, problem, fails: qualityFails + (problem ? 1 : 0) })
+        setShot({ blob, meta, url: URL.createObjectURL(blob), quality: quality ?? undefined, problem, fails: qualityFails + (problem ? 1 : 0), frameBefore, frameAfter })
       } else if (recording) {
         recording.stop()
       } else {
@@ -131,6 +131,8 @@ export default function CameraScreen({ token, sessionId, sessionCode, slot, came
           : {}),
       }, {
         signal: ctrl.signal,
+        frameBefore: shot.frameBefore,
+        frameAfter: shot.frameAfter,
         onProgress: (p) => {
           if (my === attemptRef.current) setProgress(p)
         },

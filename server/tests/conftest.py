@@ -40,8 +40,25 @@ except ImportError:
     CLASSIFY = None
 
 ADMIN_PASSWORD = "correct horse battery staple"
-ADMIN_EMAIL = "admin"  # T47: the seeded supervisor when ADMIN_EMAIL is not set
-JPEG = b"\xff\xd8\xff\xe0fake-jpeg"
+ADMIN_EMAIL = "admin@example.com"
+os.environ["ADMIN_EMAIL"] = ADMIN_EMAIL
+
+
+def _image_bytes(fmt: str, color) -> bytes:
+    import io
+
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (32, 24), color).save(buf, fmt)
+    return buf.getvalue()
+
+
+# Real, decodable images: the server sniffs magic bytes and decodes with Pillow.
+JPEG = _image_bytes("JPEG", (120, 30, 200))
+PNG = _image_bytes("PNG", (20, 180, 60))
+FRAME_BEFORE = _image_bytes("JPEG", (0, 0, 0))
+FRAME_AFTER = _image_bytes("JPEG", (255, 255, 255))
 MP4 = b"\x00\x00\x00\x18ftypmp42fake-video"
 
 
@@ -217,14 +234,20 @@ class Phone:
         assert r.status_code == 200, r.text
         return r.json()["nonce"]
 
-    def upload(self, slot_id, data=JPEG, mime="image/jpeg", nonce=None, session_id=None):
+    def upload(self, slot_id, data=JPEG, mime="image/jpeg", nonce=None, session_id=None,
+               frames=True):
+        files = {"file": ("x", data, mime)}
+        if frames and mime.startswith("image/") and slot_id != "signature":
+            # Liveness frames that differ from the shot, so a normal upload is not flagged.
+            files["frame_before"] = ("frame_before.jpg", FRAME_BEFORE, "image/jpeg")
+            files["frame_after"] = ("frame_after.jpg", FRAME_AFTER, "image/jpeg")
         return self.client.post(
             f"/api/c/{self.token}/items",
             data={
                 "step_id": slot_id,
                 "session_id": session_id or self.session["session_id"],
                 "nonce": nonce if nonce is not None else self.nonce(slot_id),
-                "client_meta": json.dumps({"camera": "back"}),
+                "client_meta": json.dumps({"camera": "back", "captured_at": "2026-10-28T15:00:00+00:00"}),
             },
-            files={"file": ("x", data, mime)},
+            files=files,
         )

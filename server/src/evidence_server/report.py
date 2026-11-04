@@ -39,6 +39,9 @@ CHECK_TITLES = {
     "capture.hint_edits": "Form edits after a photo hint",
     "capture.screen": "Photo of a screen or print",
     "fnol.statement": "First notice vs statement",
+    "static_source": "Static source",
+    "slow_upload": "Slow upload",
+    "capture.sealed": "Captured in the capture flow and sealed",
 }
 
 _LANES_HIGH = ("siu_referral", "adjuster_review")
@@ -113,7 +116,7 @@ def build(detail: dict, org_name: str, generated_at: datetime, tz: ZoneInfo) -> 
         },
         "seal": _seal(detail),
         "chain": _chain(detail),
-        "photos": _photos(damages),
+        "photos": _photos(damages, detail.get("items")),
     }
 
 
@@ -532,14 +535,23 @@ def _damage_list(damages: list[dict]) -> list[dict]:
     return out
 
 
-def _photos(damages: list[dict]) -> list[dict]:
+def _photos(damages: list[dict], items: list[dict] | None = None) -> list[dict]:
     """Current damage photos that have a reading, in reading order, listed once."""
     seen: dict = {}
     for d in damages or []:
         if d.get("item_id") not in seen:
             seen[d.get("item_id")] = d.get("slot_id")
-    return [{"item_id": item_id, "slot_id": slot_id, "label": f"{_slot_label(slot_id or '')} photo"}
-            for item_id, slot_id in seen.items()]
+    flags_by_item = {}
+    for item in items or []:
+        if isinstance(item, dict) and item.get("id"):
+            flags_by_item[item["id"]] = list(item.get("flags") or [])
+    out = []
+    for item_id, slot_id in seen.items():
+        entry = {"item_id": item_id, "slot_id": slot_id, "label": f"{_slot_label(slot_id or '')} photo"}
+        if flags_by_item.get(item_id):
+            entry["flags"] = flags_by_item[item_id]
+        out.append(entry)
+    return out
 
 
 def _seal(detail: dict) -> dict | None:

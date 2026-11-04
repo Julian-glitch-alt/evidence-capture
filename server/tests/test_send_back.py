@@ -4,7 +4,7 @@ API and the mock claims system."""
 
 import threading
 
-from conftest import Phone
+from conftest import JPEG, Phone
 from test_damage_flow import captured_claim, damage_calls, db_rows, send
 from test_decision_flow import decide
 from test_demo_insurer import API, new_claim, view, wired  # noqa: F401  (wired is a fixture)
@@ -12,7 +12,7 @@ from test_integration_api import capture
 from test_loss_notice import detail
 from test_review_flow import set_mode
 
-NEW_WIDE = b"\xff\xd8\xff\xe0fake-jpeg-wide-retaken"
+NEW_WIDE = JPEG + b"wide-retaken"
 
 
 def sent_back(client, clock, slots=("damage_wide",)):

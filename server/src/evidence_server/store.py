@@ -102,6 +102,117 @@ def _open_photo(data) -> "Image.Image | None":
         return None
 
 
+# --- upload validation: never trust the client-declared content type ---
+
+_PILLOW_FORMAT_MIME = {"JPEG": "image/jpeg", "PNG": "image/png", "WEBP": "image/webp"}
+STATIC_SOURCE_THRESHOLD = 2.0  # mean abs pixel diff (0-255) below this is near-identical
+SLOW_UPLOAD_SECONDS = 60.0
+
+
+def _sniff_mime(data: bytes) -> str | None:
+    """The mime implied by the magic bytes, or None when no known type matches."""
+    if not isinstance(data, (bytes, bytearray)):
+        return None
+    if data[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    if data[:4] == b"\x1a\x45\xdf\xa3":
+        return "video/webm"
+    if len(data) >= 12 and data[4:8] == b"ftyp":
+        if data[8:12] == b"qt  ":
+            return "video/quicktime"
+        return "video/mp4"
+    return None
+
+
+def _validate_upload(data: bytes, declared_mime: str, kind: str) -> None:
+    """Reject bytes that do not match the declared mime or do not decode.
+
+    The declared mime must already be allowed for `kind` (checked by the
+    caller); here the magic bytes must agree with it and, for images, Pillow
+    must decode the file (`Image.open` + `load`) as that format.
+    """
+    sniffed = _sniff_mime(data)
+    if sniffed is None or sniffed != declared_mime:
+        raise CaptureError(
+            f"The uploaded file does not match its declared type ({declared_mime})")
+    if kind in ("photo", "signature"):
+        try:
+            image = Image.open(io.BytesIO(data))
+            image.load()
+        except Exception:
+            raise CaptureError("The uploaded image could not be decoded") from None
+        if _PILLOW_FORMAT_MIME.get(image.format or "") != declared_mime:
+            raise CaptureError(
+                f"The uploaded file does not match its declared type ({declared_mime})")
+
+
+def _mean_abs_diff(shot: bytes, frame: bytes) -> float | None:
+    """Mean absolute pixel difference between the shot and one frame, or None
+    when either side cannot be decoded. Both are downscaled to 64x64 grey."""
+    try:
+        a = Image.open(io.BytesIO(shot))
+        a.load()
+        b = Image.open(io.BytesIO(frame))
+        b.load()
+    except Exception:
+        return None
+    a = a.convert("L").resize((64, 64))
+    b = b.convert("L").resize((64, 64))
+    # Difference via histogram so no numpy is needed.
+    from PIL import ImageChops
+
+    diff = ImageChops.difference(a, b).histogram()
+    total = sum(count * value for value, count in enumerate(diff))
+    return total / (64 * 64)
+
+
+def _liveness_assessment(kind: str, data: bytes, frame_before, frame_after) -> dict | None:
+    """Liveness for a photo shot; None for kinds it does not apply to.
+
+    Missing or near-identical frames flag a static source. This is a flag
+    for the adjuster, never a block.
+    """
+    if kind != "photo":
+        return None
+    if not frame_before or not frame_after:
+        return {
+            "status": "flagged",
+            "reason": "Liveness frames are missing, so a static source cannot be ruled out.",
+            "frames_present": False,
+            "mean_abs_diff_before": None,
+            "mean_abs_diff_after": None,
+        }
+    diff_before = _mean_abs_diff(data, frame_before)
+    diff_after = _mean_abs_diff(data, frame_after)
+    if diff_before is None or diff_after is None:
+        return {
+            "status": "flagged",
+            "reason": "Liveness frames could not be decoded, so a static source cannot be ruled out.",
+            "frames_present": True,
+            "mean_abs_diff_before": diff_before,
+            "mean_abs_diff_after": diff_after,
+        }
+    if diff_before < STATIC_SOURCE_THRESHOLD and diff_after < STATIC_SOURCE_THRESHOLD:
+        return {
+            "status": "flagged",
+            "reason": "Liveness frames are near-identical to the shot, which suggests a static source.",
+            "frames_present": True,
+            "mean_abs_diff_before": round(diff_before, 3),
+            "mean_abs_diff_after": round(diff_after, 3),
+        }
+    return {
+        "status": "ok",
+        "reason": None,
+        "frames_present": True,
+        "mean_abs_diff_before": round(diff_before, 3),
+        "mean_abs_diff_after": round(diff_after, 3),
+    }
+
+
 class Store:
     def __init__(
         self,
@@ -139,13 +250,16 @@ class Store:
 
         Only when the org has no user and a password is configured; afterwards
         startup changes nothing (changing ADMIN_PASSWORD later changes nobody's
-        password). The seeded email skips the email format check (it may be `admin`).
+        password). The seeded email must be an email address; there is no
+        "admin" default.
         """
         if not admin_password:
             return
         if conn.execute("SELECT 1 FROM users WHERE org_id=%s LIMIT 1", (self.org_id,)).fetchone():
             return
-        email = (admin_email or "admin").strip().lower()
+        if not admin_email:
+            return
+        email = users.check_email(admin_email)
         conn.execute(
             "INSERT INTO users (id, org_id, email, name, role, password_hash,"
             " must_change_password, active, session_version, created_at, created_by)"
@@ -1152,7 +1266,8 @@ class Store:
             checks = (coverage.load(conn, claim["id"]) + photo_check.load(conn, claim["id"])
                       + consistency.load(conn, claim["id"]) + claim_type.load(conn, claim["id"]))
             if claim["submitted_at"] is not None:  # cheap signals, computed on read like the proposal
-                checks += signals.rows(photo_rows, photo_ctx, evts, self._answers(claim))
+                checks += signals.rows(photo_rows, photo_ctx, evts, self._answers(claim),
+                                       [self._item_public(i) for i in items])
             reading = self._damage_view(conn, claim["id"])
             consistency_status = self._consistency_status(conn, claim["id"])
             review_state = self._review_state(conn, claim_id)
@@ -1419,6 +1534,8 @@ class Store:
         client_meta: dict,
         session_id: str = "",
         nonce: str = "",
+        frame_before: bytes | None = None,
+        frame_after: bytes | None = None,
     ) -> dict:
         # (b) Read-only pre-check in a short tx: no claim lock and no pool
         # connection is held while the bytes are uploaded in (c).
@@ -1437,6 +1554,7 @@ class Store:
                 raise CaptureError("Empty file")
             if len(data) > MAX_BYTES[kind]:
                 raise CaptureError(f"File too large for a {kind}", 413)
+            _validate_upload(data, mime, kind)
             claim_id = claim["id"]
             ext = ALLOWED_MIME[kind][mime]
             sha256 = hashlib.sha256(data).hexdigest()
@@ -1465,6 +1583,9 @@ class Store:
                 raise CaptureError("This shot was already uploaded. Please retake it.", 403)
             if datetime.fromisoformat(nrow["expires_at"]) < now_pre:
                 raise CaptureError("This shot was not taken in the capture screen. Please retake it.", 403)
+            nonce_issued_at = nrow["issued_at"]
+        # Liveness is assessed outside any transaction: flag only, never a block.
+        liveness = _liveness_assessment(kind, data, frame_before, frame_after)
         item_id = uuid.uuid4().hex
         key = f"claims/{claim_id}/{step_id}-{item_id}.{ext}"
         # (c) The file lands in the blob store before its row, holding neither
@@ -1501,9 +1622,42 @@ class Store:
                         "UPDATE items SET superseded=1 WHERE claim_id=%s AND step_id=%s",
                         (claim["id"], step_id),
                     )
+                # Server-side facts (fix 8): what the server itself recorded.
+                # The client capture time stays labelled client-reported and
+                # untrusted; photos carry no camera EXIF by design (canvas).
+                try:
+                    latency_s = (now - datetime.fromisoformat(nonce_issued_at)).total_seconds()
+                except (TypeError, ValueError):
+                    latency_s = None
+                slow_upload = latency_s is not None and latency_s > SLOW_UPLOAD_SECONDS
+                flags: list[str] = []
+                if liveness is not None and liveness.get("status") == "flagged":
+                    flags.append("static_source")
+                if slow_upload:
+                    flags.append("slow_upload")
+                client_captured_at = None
+                if isinstance(client_meta, dict):
+                    raw_captured = client_meta.get("captured_at")
+                    client_captured_at = raw_captured if isinstance(raw_captured, str) else None
+                server_facts = {
+                    "received_at": now.isoformat(),
+                    "client_captured_at": client_captured_at,
+                    "client_captured_at_source": (
+                        "client-reported, untrusted" if client_captured_at else None),
+                    "nonce_issued_at": nonce_issued_at,
+                    "nonce_to_upload_latency_seconds": (
+                        round(latency_s, 3) if latency_s is not None else None),
+                    "slow_upload": bool(slow_upload),
+                    "liveness": liveness,
+                    "static_source": (
+                        "flagged" if liveness is not None and liveness.get("status") == "flagged"
+                        else ("ok" if liveness is not None else None)),
+                    "flags": flags,
+                }
                 conn.execute(
                     "INSERT INTO items (id, claim_id, step_id, kind, mime, path, size, sha256,"
-                    " received_at, client_meta_json) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    " received_at, client_meta_json, server_facts_json)"
+                    " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (
                         item_id,
                         claim["id"],
@@ -1515,6 +1669,7 @@ class Store:
                         sha256,
                         now.isoformat(),
                         json.dumps(client_meta),  # size capped at the route
+                        json.dumps(server_facts),
                     ),
                 )
                 if step_id in photo_check.CHECKED_SLOTS:
@@ -1529,7 +1684,9 @@ class Store:
                 capture.link_item(conn, nonce, item_id)
                 lifecycle.append_event(
                     conn, claim["id"], now.isoformat(), "customer", "item.received",
-                    data={"item_id": item_id, "slot": step_id, "sha256": sha256, "size": len(data)},
+                    data={"item_id": item_id, "slot": step_id, "sha256": sha256, "size": len(data),
+                          "flags": flags,
+                          "nonce_to_upload_latency_seconds": server_facts["nonce_to_upload_latency_seconds"]},
                 )
                 if not step.get("multiple") and active:
                     lifecycle.append_event(
@@ -3066,6 +3223,13 @@ class Store:
                 " FROM claims WHERE id=%s", (claim_id,)).fetchone()
             snapshot = conn.execute("SELECT data_json FROM policy_snapshots WHERE id=%s", (claim["policy_snapshot_id"],)).fetchone()
             paths = {r["id"]: r["path"] for r in conn.execute("SELECT id, path FROM items WHERE claim_id=%s", (claim_id,))}
+            manifest_for_events = json.loads(row["manifest_json"])
+            sealed_count = manifest_for_events.get("event_count")
+            all_events = lifecycle.events(conn, claim_id)
+            # The manifest signs the chain as it stood at sealing; later
+            # analysis events are not part of the sealed log.
+            sealed_events = all_events[:sealed_count] if isinstance(sealed_count, int) else all_events
+            events_jsonl = lifecycle.events_jsonl(sealed_events)
         manifest = json.loads(row["manifest_json"])
         if claim.get("removal_json") and claim.get("removal_signature"):
             return seal.build_package(
@@ -3073,6 +3237,7 @@ class Store:
                 claim["form_json"], snapshot["data_json"] or "", {},
                 removal_json=claim["removal_json"].encode(),
                 removal_sig=claim["removal_signature"],
+                events_jsonl=events_jsonl,
             )
         # Files are read from the blob store as they are now, so a file edited after sealing shows up in Verify.
         files: dict[str, bytes] = {}
@@ -3084,6 +3249,7 @@ class Store:
         return seal.build_package(
             row["manifest_json"].encode(), row["signature"], self.sealer.public_key_b64,
             claim["form_json"], snapshot["data_json"] or "", files,
+            events_jsonl=events_jsonl,
         )
 
     def verify_package(self, data) -> dict:
@@ -3243,6 +3409,26 @@ class Store:
 
     @staticmethod
     def _item_public(row: dict) -> dict:
+        try:
+            facts = json.loads(row.get("server_facts_json") or "{}")
+        except (ValueError, TypeError, AttributeError):
+            facts = {}
+        if not isinstance(facts, dict):
+            facts = {}
+        flags = facts.get("flags") if isinstance(facts.get("flags"), list) else []
+        # Older rows (before server facts) still expose the server times.
+        if not facts:
+            facts = {
+                "received_at": row["received_at"],
+                "client_captured_at": None,
+                "client_captured_at_source": None,
+                "nonce_issued_at": None,
+                "nonce_to_upload_latency_seconds": None,
+                "slow_upload": False,
+                "liveness": None,
+                "static_source": None,
+                "flags": flags,
+            }
         return {
             "id": row["id"],
             "step_id": row["step_id"],
@@ -3255,4 +3441,11 @@ class Store:
             "client_meta": json.loads(row["client_meta_json"]),
             "removed_at": row.get("removed_at"),
             "removed_reason": row.get("removed_reason"),
+            "flags": flags,
+            "static_source": facts.get("static_source"),
+            "slow_upload": bool(facts.get("slow_upload")),
+            "nonce_to_upload_latency_seconds": facts.get("nonce_to_upload_latency_seconds"),
+            "server_facts": facts,
+            "facts": facts,
+            "liveness": facts.get("liveness"),
         }

@@ -53,7 +53,8 @@ def test_a_retaken_wrong_plate_reaches_the_adjuster_with_the_old_photo(client, m
         conn.execute("UPDATE photo_checks SET readings_json=%s WHERE item_id=%s",
                      ('[{"is_plate": true, "text": "8ABC123", "state": "CA", "unsure": false, "problem": "none"}]', first))
     clock.advance(seconds=1)
-    assert phone.upload("plate", b"\xff\xd8\xff\xe0second-plate").status_code == 200
+    from conftest import JPEG
+    assert phone.upload("plate", JPEG + b"second-plate").status_code == 200
     d = send(client, claim)
     trail = flags_by_source(d)["capture.retake_trail"]
     assert (trail["level"], trail["reason_code"], trail["cause"]) == ("review", "RETAKE_AFTER_MISMATCH", "coaching")

@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
-from . import integration, meta_client, policies, proposal, ratelimit, report
+from . import integration, meta_client, policies, proposal, ratelimit, report, users as users_mod
 from .auth import AdminAuth
 from .blobstore import BlobStore, blobstore_from_env
 from .db import Database
@@ -120,17 +120,32 @@ _VERIFY_NODE = '''function verify(body, header, secret) {
 '''
 
 
-def callback_host_allowed(url: str, allowed: list[str], own_host: str | None) -> bool:
-    """The callback URL's host is our own host or on the configured list.
+_LOCAL_CALLBACK_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
-    Entries are exact host names or "*.example.com" (any subdomain). The URL is
-    fixed when the capture request is created, so this is checked once, there.
+
+def callback_host_allowed(url: str, allowed: list[str], own_host: str | None,
+                          test_mode: bool = False) -> bool:
+    """Whether a callback URL may be used.
+
+    https is required. http is allowed only in test mode for localhost /
+    127.0.0.1 or the server's own host (local integration testing). For
+    https, the host must be our own host or on the configured list: entries
+    are exact host names or "*.example.com" (any subdomain). The URL is
+    fixed when the capture request is created, so this is checked once.
     """
     try:
-        host = (urlsplit(url).hostname or "").lower()
+        parts = urlsplit(url)
+        host = (parts.hostname or "").lower()
     except ValueError:
         return False
     if not host:
+        return False
+    scheme = (parts.scheme or "").lower()
+    if scheme == "http":
+        if not test_mode:
+            return False
+        return host in _LOCAL_CALLBACK_HOSTS or bool(own_host and host == own_host.lower())
+    if scheme != "https":
         return False
     if own_host and host == own_host.lower():
         return True
@@ -209,7 +224,13 @@ def create_app(
     if admin_password is None:
         admin_password = os.environ.get("ADMIN_PASSWORD")
     if admin_email is None:
-        admin_email = os.environ.get("ADMIN_EMAIL", "admin")
+        admin_email = os.environ.get("ADMIN_EMAIL")
+    if admin_email is not None:
+        try:
+            admin_email = users_mod.check_email(admin_email)
+        except ValueError:
+            raise RuntimeError(
+                "ADMIN_EMAIL must be an email address (like name@example.com)") from None
     store = Store(data_dir, db, blobstore, clock, meta=meta, check_license=check_license,
                   sam_max_calls=0 if provider == "fireworks" else meta_settings["sam_max_calls"] or 0,
                   lane_rule=lane_rule, admin_email=admin_email, admin_password=admin_password)
@@ -545,8 +566,9 @@ def create_app(
         if not isinstance(url, str) or not (
             url.startswith("https://") or url.startswith("http://")
         ):
-            raise CaptureError("callback_url must be an https:// or http:// URL", 400)
-        if not callback_host_allowed(url, callback_hosts, request.url.hostname):
+            raise CaptureError("callback_url must be an https:// URL", 400)
+        # A test ping is a test-mode use: http to localhost / our own host is allowed.
+        if not callback_host_allowed(url, callback_hosts, request.url.hostname, test_mode=True):
             raise CaptureError(
                 "callback_url host is not on this deployment's allowed list (CALLBACK_ALLOWED_HOSTS)",
                 400,
@@ -625,7 +647,7 @@ def create_app(
         if not isinstance(callback, str) or not (
             callback.startswith("https://") or callback.startswith("http://")
         ):
-            raise CaptureError("callback_url must be an https:// or http:// URL")
+            raise CaptureError("callback_url must be an https:// URL")
         claimant = body.get("claimant")
         loss = body.get("loss")
         opened_data = {
@@ -646,7 +668,12 @@ def create_app(
                 raise CaptureError("policy: must be an object", 400)
             validated_policy = policies.validate_policy(policy_in, store.clock.now().date(), "policy.")
             validated_policy["source"] = "insurer"
-        if not callback_host_allowed(callback, callback_hosts, request.url.hostname):
+        if not callback_host_allowed(callback, callback_hosts, request.url.hostname,
+                                     test_mode=test_mode):
+            if callback.startswith("http://"):
+                raise CaptureError(
+                    "callback_url must be an https:// URL "
+                    "(http:// is only allowed for localhost or this host in test mode)", 400)
             raise CaptureError(
                 "callback_url host is not on this deployment's allowed list (CALLBACK_ALLOWED_HOSTS)"
             )
@@ -773,6 +800,8 @@ def create_app(
         nonce: str = Form(""),
         client_meta: str = Form("{}"),
         file: UploadFile = File(...),
+        frame_before: UploadFile | None = File(None),
+        frame_after: UploadFile | None = File(None),
     ):
         if len(client_meta) > MAX_CLIENT_META:
             raise CaptureError("Device metadata too large", 413)
@@ -782,7 +811,10 @@ def create_app(
             meta = {"unparsed": client_meta[:500]}
         store.check_link(token)  # before reading the file
         data = file.file.read(MAX_BYTES_ANY + 1)
-        item = store.add_item(token, step_id, data, file.content_type or "", meta, session_id, nonce)
+        frame_before_bytes = frame_before.file.read() if frame_before is not None else None
+        frame_after_bytes = frame_after.file.read() if frame_after is not None else None
+        item = store.add_item(token, step_id, data, file.content_type or "", meta, session_id, nonce,
+                              frame_before=frame_before_bytes, frame_after=frame_after_bytes)
         if step_id in CHECKED_SLOTS:
             background_tasks.add_task(store.run_photo_check, item["id"])
         return item
@@ -1004,5 +1036,5 @@ def main() -> None:
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 8000)),
         proxy_headers=True,
-        forwarded_allow_ips="*",
+        forwarded_allow_ips=os.environ.get("FORWARDED_ALLOW_IPS", "127.0.0.1"),
     )
