@@ -413,7 +413,10 @@ def test_no_overclaiming_live_copy_in_app_and_readme():
     assert "static_source" in loss
     readme = (root / "README.md").read_text()
     assert "Old or edited photos cannot be uploaded" not in readme
-    assert "The capture page only offers the live camera; direct API uploads are flagged, and a native app closes this gap." in readme
+    assert "The capture page only offers the in-page camera and has no gallery picker" in readme
+    assert "capture-flow verification, not proof of a physical camera" in readme
+    assert "Direct API uploads, a virtual camera, or a photo of a screen can still reach the server" in readme
+    assert "Only a native app with App Attest / Play Integrity, or camera-side C2PA provenance, can close that gap." in readme
     assert "tools/verify_package.py" in readme
     threat = (root / "docs/threat-model.md").read_text()
     for needle in ("Dishonest claimant", "network attacker", "Operator",
