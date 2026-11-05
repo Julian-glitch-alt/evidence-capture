@@ -68,6 +68,18 @@ Current AI-engineering practice, applied to one narrow problem. every row below 
 | **Bayesian evidence fusion** | Log-odds added per root cause, related causes capped together, nothing double-counted, model-only causes capped at 0.3 and never enough alone |
 | **Workflow, not an agent** | Five standard patterns (routing, evaluator-optimizer, bounded retries) and deliberately no autonomous agent |
 
+### Harnesses, loops and graphs
+
+These words map to concrete parts of the codebase (full map: [docs/technical-breakdown.md](docs/technical-breakdown.md), section 5):
+
+| Kind | In this repo |
+| --- | --- |
+| Harnesses | Five: evaluation (72-photo golden set), fake-model tests, replay in CI at $0, Playwright browser, load — plus live probes comparing providers |
+| Loops | Nine, every one bounded: capture retakes (3 per slot), second opinion (1 per photo, 2 per claim), generate→verify→retry (1), backoff retries (3), webhook redelivery, self-healing sweeper, send-back recapture, adjuster feedback |
+| Graphs | Six: vehicle-area adjacency, claim state machine (17 statuses), event hash chain, root-cause map, analysis pipeline DAG, cross-photo damage grouping |
+
+No loop is open-ended and there is no knowledge graph: that is deliberate — a workflow, not an autonomous agent.
+
 Deliberately **not** used, and not claimed anywhere: RAG, vector databases, fine-tuning, multi-agent systems, tool calling, MCP, agent memory, and calibration — the evidence weights are documented assumptions, not fitted probabilities.
 
 
