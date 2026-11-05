@@ -5,6 +5,70 @@ The adjuster keeps working in the claims system; this product delivers the verif
 
 > **Built with Meta AI.** At runtime, Muse Spark reads every photo and statement and SAM 3.1 outlines the damage (see [Meta models](#meta-models)). The code was written by a solo developer working with AI coding agents: **Muse Code** (Meta) and **Claude Code** (Anthropic). Live demo: https://phamdinhluu0712--evidence-capture.us-east.modal.run
 
+## Five layers
+
+The model is only the innermost layer. Four more layers are what make its output usable in an insurance claim:
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ 5. Foundation: backend, Postgres, frontend, tests, CI    │
+│ ┌──────────────────────────────────────────────────────┐ │
+│ │ 4. Surfaces: capture link, console, Verify, API      │ │
+│ │ ┌──────────────────────────────────────────────────┐ │ │
+│ │ │ 3. Trust: liveness frames, nonce, upload sniff,  │ │ │
+│ │ │    Ed25519 seal, hash-chained event log          │ │ │
+│ │ │ ┌──────────────────────────────────────────────┐ │ │ │
+│ │ │ │ 2. Decision: coverage, damage merge,         │ │ │ │
+│ │ │ │    log-odds fusion, cost-based lanes         │ │ │ │
+│ │ │ │ ┌──────────────────────────────────────────┐ │ │ │ │
+│ │ │ │ │ 1. AI core: Muse Spark + SAM 3.1, inside │ │ │ │ │
+│ │ │ │ │ a harness: gateway, guardrails,          │ │ │ │ │
+│ │ │ │ │ self-correction, tracing, evals          │ │ │ │ │
+│ │ │ │ └──────────────────────────────────────────┘ │ │ │ │
+│ │ │ └──────────────────────────────────────────────┘ │ │ │
+│ │ └──────────────────────────────────────────────────┘ │ │
+│ └──────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────┘
+```
+
+| Layer | Role | One line |
+| --- | --- | --- |
+| 1. AI core | The model reads photos and text; a harness keeps it right | The AI reads |
+| 2. Decision | Code turns readings into conclusions with reasons | Code decides |
+| 3. Trust | Proves the evidence is real and was not altered | The evidence can be trusted |
+| 4. Surfaces | What claimant, adjuster and insurer system touch | What people see |
+| 5. Foundation | Runs reliably, with tests and CI | It runs for real |
+
+Layer 1 is deliberately a **workflow, not an autonomous agent**: fixed steps, no tool calling, no open-ended planning. Layer 3 is what makes this product different: every other team has AI; very few prove their evidence.
+
+## AI engineering techniques, all in the code
+
+Current AI-engineering practice, applied to one narrow problem; every row below is implemented in the server code in this repository.
+
+| Technique | What it is here |
+| --- | --- |
+| **Guardrails** | Fourteen checked layers between any model output and any decision (task decomposition, constrained output, abstention, grounding, limited authority, and more) |
+| **Structured outputs** | Every call returns JSON against an exact shape; a malformed answer becomes "unchecked", never a pass |
+| **Evals / eval-driven development** | A 72-photo golden set; wrong answers and refusals counted separately, Wilson intervals, McNemar for prompt-to-prompt comparisons, detection measured at a fixed false-alarm rate |
+| **Self-consistency** | The VIN is read twice with two differently worded prompts and the reads must agree before the ISO 3779 check digit is even tried |
+| **Reflection / self-correction** | A rejected AI summary is sent back once, with the rejection reasons, for the model to rewrite |
+| **Verifier / critic** | Code scores every sentence the model writes: citations, numbers, polarity, forbidden words |
+| **Grounding / citations** | Every summary sentence must cite a real fact key; invented keys fail verification |
+| **Multimodal pipeline** | Muse Spark reads and boxes the damage, SAM 3.1 segments inside the box, code measures the area; disagreement is a review note, not a verdict |
+| **Context engineering** | Later steps never see raw photos, only the merged, numbered damage list plus keyed facts |
+| **Human-in-the-loop** | The adjuster makes every final decision and labels each flag "confirmed" or "false alarm" |
+| **Prompt-injection defence** | Claimant text and photos are fenced data, fake fence tags are stripped, and the model has no tools and no authority |
+| **Observability / tracing** | Every model call is logged with tokens, cost and latency; every conclusion traces back to the exact call (`call_id`) that produced it |
+| **Cost control** | A content-hash replay cache, plus per-claim and per-day budget caps that act as circuit breakers |
+| **Uncertainty / abstention** | The model may answer "unsure"; a signal that did not run is recorded as "missing", never as zero |
+| **Content provenance** | Ed25519 signature plus a hash-chained event log in every sealed package, verifiable offline (the same idea family as C2PA) |
+| **Event sourcing / audit log** | Append-only, hash-linked event history; deletion is itself an event with a receipt |
+| **Bayesian evidence fusion** | Log-odds added per root cause, related causes capped together, nothing double-counted, model-only causes capped at 0.3 and never enough alone |
+| **Workflow, not an agent** | Five standard patterns (routing, evaluator-optimizer, bounded retries) and deliberately no autonomous agent |
+
+Deliberately **not** used, and not claimed anywhere: RAG, vector databases, fine-tuning, multi-agent systems, tool calling, MCP, agent memory, and calibration — the evidence weights are documented assumptions, not fitted probabilities.
+
+
 ## The problem
 
 - In a 2026 Verisk survey (a vendor survey), 36% of US consumers said they would consider editing a claim photo or document (55% of Gen Z); 99% of claims staff have seen altered or AI-made documents, yet only 32% of carriers feel confident detecting them.
